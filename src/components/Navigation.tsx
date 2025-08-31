@@ -31,7 +31,7 @@ export const Navigation: React.FC = () => {
             >
               <span className="text-2xl lg:text-3xl animate-bounce-slow">🐄</span>
               <span className="text-xl lg:text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                MilkerFun
+                Milker.Fun
               </span>
               <span className="text-2xl lg:text-3xl animate-bounce-slow">🥛</span>
             </Link>

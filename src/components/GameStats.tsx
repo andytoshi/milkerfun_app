@@ -315,7 +315,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
       {/* Game Mechanics */}
       <div className="card p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
         <h4 className="text-2xl font-bold text-center text-gray-800 mb-8">
-          🎮 How MilkerFun Works (Live Game Rules)
+          🎮 How Milker.fun Works (Live Game Rules)
         </h4>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">

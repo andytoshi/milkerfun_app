@@ -27,7 +27,7 @@ export const Hero: React.FC = () => {
         <div className="text-center mb-12 lg:mb-16">
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black text-white mb-6 text-shadow-lg">
             <span className="inline-block animate-bounce-slow mr-4">🐄</span>
-            MilkerFun
+            Milker.Fun
             <span className="inline-block animate-bounce-slow ml-4">🥛</span>
           </h1>
           <p className="text-xl sm:text-2xl lg:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed text-shadow">
@@ -98,7 +98,7 @@ export const Hero: React.FC = () => {
               🔧 Technical Information
             </h3>
             <p className="text-white/90 text-lg leading-relaxed mb-8 text-center max-w-4xl mx-auto">
-              MilkerFun is a fully decentralized idle farming game built on Solana. 
+              Milker.Fun is a fully decentralized idle farming game built on Solana. 
               All game logic runs on-chain with complete transparency and security.
               The smart contract is deployed and verified - no rug pulls, no hidden mechanics!
             </p>
