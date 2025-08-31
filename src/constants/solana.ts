@@ -11,16 +11,16 @@ export const NETWORKS = {
     poolTokenAccount: new PublicKey('6vLghnr8127cdaeeURMSHHgHEeqNnrA7v9aWbf3B8jkw'),
     explorerUrl: 'https://explorer.solana.com',
   },
-  // mainnet: {
-  //   name: 'Mainnet',
-  //   rpcUrl: 'https://patient-morning-forest.solana-mainnet.quiknode.pro/e5360c42c26cc7972c3921a997078c86e3e723c2/',
-  //   programId: new PublicKey('11111111111111111111111111111111'),
-  //   milkMint: new PublicKey('11111111111111111111111111111111'),
-  //   configPda: new PublicKey('11111111111111111111111111111111'),
-  //   poolAuthorityPda: new PublicKey('11111111111111111111111111111111'),
-  //   poolTokenAccount: new PublicKey('11111111111111111111111111111111'),
-  //   explorerUrl: 'https://explorer.solana.com',
-  // }
+  mainnet: {
+    name: 'Mainnet',
+    rpcUrl: 'https://patient-morning-forest.solana-mainnet.quiknode.pro/e5360c42c26cc7972c3921a997078c86e3e723c2/',
+    programId: new PublicKey('11111111111111111111111111111111'),
+    milkMint: new PublicKey('11111111111111111111111111111111'),
+    configPda: new PublicKey('11111111111111111111111111111111'),
+    poolAuthorityPda: new PublicKey('11111111111111111111111111111111'),
+    poolTokenAccount: new PublicKey('11111111111111111111111111111111'),
+    explorerUrl: 'https://explorer.solana.com',
+  }
 } as const;
 
 export type NetworkType = keyof typeof NETWORKS;

@@ -9,8 +9,8 @@ export const NetworkSwitcher: React.FC = () => {
   const [showWalletWarning, setShowWalletWarning] = useState(false);
 
   const networks = [
-    { key: 'devnet' as NetworkType, name: 'Devnet', color: 'bg-yellow-500' },
-    { key: 'mainnet' as NetworkType, name: 'Mainnet', color: 'bg-green-500' }
+    { key: 'devnet' as NetworkType, name: 'Devnet', color: 'bg-yellow-500' }
+    // { key: 'mainnet' as NetworkType, name: 'Mainnet', color: 'bg-green-500' }
   ];
 
   const currentNetworkInfo = networks.find(n => n.key === currentNetwork);
