@@ -37,7 +37,7 @@ export const GAME_CONFIG = {
 } as const;
 
 export const SOCIAL_LINKS = {
-  twitter: '',
+  twitter: 'https://x.com/i/communities/1962235115448279104',
   github: 'https://github.com/andytoshi/milkerfun',
   tradeMilk: '',
 } as const;
