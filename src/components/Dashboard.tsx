@@ -3,7 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useGameData } from '../hooks/useGameData';
 import { useNetwork } from '../hooks/useNetwork';
-import { Milk, Clock, TrendingUp, ExternalLink, User, Shield, AlertTriangle } from 'lucide-react';
+import { Milk, TrendingUp, ExternalLink, User, Shield } from 'lucide-react';
 import { formatNumber, formatTime, shortenAddress } from '../utils/format';
 
 export const Dashboard: React.FC = () => {

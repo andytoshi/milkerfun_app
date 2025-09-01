@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNetwork } from '../hooks/useNetwork';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { TrendingUp, Calendar, Zap, Target, Users, RefreshCw, DollarSign, Shield } from 'lucide-react';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { TrendingUp, Calendar, Users, RefreshCw, DollarSign, Shield } from 'lucide-react';
 import { formatNumber, formatTime } from '../utils/format';
 import { GAME_CONFIG } from '../constants/solana';
 import { calculateDynamicCowPrice, calculateDynamicRewardRate, calculateGreedMultiplier } from '../utils/program';
@@ -20,13 +20,12 @@ interface GameStatsProps {
 export const GameStats: React.FC<GameStatsProps> = ({
   gameStats,
   configData,
-  totalStats,
   globalStats,
   loading,
   error,
   onRefresh
 }) => {
-  const { currentNetwork, networkConfig } = useNetwork();
+  const { currentNetwork } = useNetwork();
 
   // Calculate detailed time since game start
   const getTimeSinceStart = () => {

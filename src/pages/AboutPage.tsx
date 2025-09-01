@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, TrendingUp, Zap, Users, ExternalLink, Github, Twitter } from 'lucide-react';
+import { Shield, TrendingUp, Zap, Github, Twitter } from 'lucide-react';
 
 import { SOCIAL_LINKS } from '../constants/solana';
 
