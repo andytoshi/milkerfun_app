@@ -31,25 +31,25 @@ export const Hero: React.FC = () => {
             <span className="inline-block animate-bounce-slow ml-4">🥛</span>
           </h1>
           <p className="text-xl sm:text-2xl lg:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed text-shadow">
-            The mooooost profitable idle farming game on Solana! 
+            We reimagined DeFi on Solana. Every crash = more cash.
             <br className="hidden sm:block" />
-            Buy cows, earn MILK, compound your way to the moon! 🚀
+           The mooooost profitable idle farming game on Solana!
           </p>
         </div>
 
         {/* Features */}
         <div className="flex flex-wrap justify-center gap-4 lg:gap-6 mb-12 lg:mb-16">
           <div className="glass-card px-6 py-4 flex items-center gap-3">
-            <Shield className="text-yellow-400 flex-shrink-0" size={24} />
-            <span className="text-white font-semibold">100% On-Chain</span>
+            <Shield className="text-red-400 flex-shrink-0" size={24} />
+            <span className="text-white font-semibold">Anti-Dump Protocol</span>
           </div>
           <div className="glass-card px-6 py-4 flex items-center gap-3">
             <Zap className="text-yellow-400 flex-shrink-0" size={24} />
-            <span className="text-white font-semibold">Real-Time Rewards</span>
+            <span className="text-white font-semibold">Dynamic Economics</span>
           </div>
           <div className="glass-card px-6 py-4 flex items-center gap-3">
             <TrendingUp className="text-yellow-400 flex-shrink-0" size={24} />
-            <span className="text-white font-semibold">Compound Interest</span>
+            <span className="text-white font-semibold">Sustainable Yields</span>
           </div>
         </div>
 
@@ -98,9 +98,9 @@ export const Hero: React.FC = () => {
               🔧 Technical Information
             </h3>
             <p className="text-white/90 text-lg leading-relaxed mb-8 text-center max-w-4xl mx-auto">
-              Milker.Fun is a fully decentralized idle farming game built on Solana. 
-              All game logic runs on-chain with complete transparency and security.
-              The smart contract is deployed and verified - no rug pulls, no hidden mechanics!
+              MilkerFun is a revolutionary DeFi protocol implementing advanced mathematical models for sustainable tokenomics. 
+              While the interface shows a fun cow farming game, the underlying system features dynamic bonding curves, 
+              TVL-responsive rewards, and innovative anti-dump mechanisms that solve real problems in decentralized finance.
             </p>
 
             <div className="grid lg:grid-cols-3 gap-8">
@@ -162,57 +162,58 @@ export const Hero: React.FC = () => {
 
               {/* Safety Features */}
               <div className="lg:col-span-1">
-                <h4 className="text-xl font-bold text-yellow-400 mb-4">🛡️ Why It's Safe</h4>
+                <h4 className="text-xl font-bold text-yellow-400 mb-4">🛡️ Protocol Innovations</h4>
                 <ul className="space-y-3 text-white/90">
                   <li className="flex items-start gap-3">
                     <span className="text-green-400 flex-shrink-0">✅</span>
-                    <span><strong>Open Source:</strong> All code is publicly available on GitHub</span>
+                    <span><strong>Anti-Dump Protection:</strong> 24h cooling period with 50% penalty redistribution</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-green-400 flex-shrink-0">✅</span>
-                    <span><strong>On-Chain Logic:</strong> Game rules enforced by Solana blockchain</span>
+                    <span><strong>Dynamic Pricing:</strong> Exponential bonding curves prevent whale dominance</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-green-400 flex-shrink-0">✅</span>
-                    <span><strong>No Admin Keys:</strong> Contract is immutable once deployed</span>
+                    <span><strong>TVL-Responsive Rewards:</strong> Anti-inflationary yield mechanisms</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-green-400 flex-shrink-0">✅</span>
-                    <span><strong>Transparent Economics:</strong> All rates and mechanics are public</span>
+                    <span><strong>Greed Decay:</strong> Mathematical early adopter incentives</span>
                   </li>
                 </ul>
               </div>
 
               {/* How It Works */}
               <div className="lg:col-span-1">
-                <h4 className="text-xl font-bold text-yellow-400 mb-4">⚙️ How It Works</h4>
+                <h4 className="text-xl font-bold text-yellow-400 mb-4">⚙️ Protocol Mechanics</h4>
                 <ol className="space-y-3 text-white/90">
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">1</span>
-                    <span><strong>Buy Cows:</strong> Spend MILK tokens to purchase cows</span>
+                    <span><strong>Stake Capital:</strong> Buy "cows" at dynamic prices (bonding curve)</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">2</span>
-                    <span><strong>Earn Rewards:</strong> Each cow produces MILK automatically</span>
+                    <span><strong>Earn Yield:</strong> TVL-responsive rewards with greed multiplier</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">3</span>
-                    <span><strong>Compound:</strong> Use rewards to buy more cows</span>
+                    <span><strong>Compound:</strong> Reinvest rewards for exponential growth</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
-                    <span><strong>Withdraw:</strong> Cash out accumulated MILK anytime</span>
+                    <span><strong>Withdraw:</strong> Extract yield (24h cooling period applies)</span>
                   </li>
                 </ol>
               </div>
             </div>
 
-            {/* Meme Section */}
-            <div className="mt-8 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-2xl p-6 border border-yellow-400/30">
-              <h4 className="text-xl font-bold text-yellow-400 mb-3 text-center">🎭 The Meme</h4>
+            {/* Protocol Innovation */}
+            <div className="mt-8 bg-gradient-to-r from-purple-400/20 to-blue-500/20 rounded-2xl p-6 border border-purple-400/30">
+              <h4 className="text-xl font-bold text-purple-400 mb-3 text-center">🧮 The Innovation</h4>
               <p className="text-white/90 text-center text-lg leading-relaxed">
-                Why did the cow become a DeFi farmer? Because it wanted to make some 
-                <strong className="text-yellow-400"> MOOOO-NEY</strong>! 🐄💰 Join the herd and start your dairy empire today!
+                MilkerFun proves that complex mathematical models can be made accessible through gamification. 
+                We've created the <strong className="text-purple-400"> first truly sustainable DeFi protocol </strong> 
+                that solves inflation, whale dominance, and market manipulation through pure mathematics! 🧮✨
               </p>
             </div>
           </div>

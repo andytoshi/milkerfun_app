@@ -31,6 +31,7 @@ export interface UserStats {
   milkBalance: number;
   estimatedPendingRewards: number;
   totalRewards: number;
+  lastWithdrawTime?: number;
 }
 
 export interface WithdrawalHistory {

@@ -4,6 +4,7 @@ import { Navigation } from './components/Navigation'
 import { HomePage } from './pages/HomePage'
 import { GamePage } from './pages/GamePage'
 import { StatsPage } from './pages/StatsPage'
+import { AboutPage } from './pages/AboutPage'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/game" element={<GamePage />} />
               <Route path="/stats" element={<StatsPage />} />
+              <Route path="/about" element={<AboutPage />} />
             </Routes>
           </main>
         </div>

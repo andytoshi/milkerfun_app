@@ -3,13 +3,37 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useGameData } from '../hooks/useGameData';
 import { useNetwork } from '../hooks/useNetwork';
-import { Milk, Clock, TrendingUp, ExternalLink, User } from 'lucide-react';
+import { Milk, Clock, TrendingUp, ExternalLink, User, Shield, AlertTriangle } from 'lucide-react';
 import { formatNumber, formatTime, shortenAddress } from '../utils/format';
 
 export const Dashboard: React.FC = () => {
   const { publicKey } = useWallet();
   const { networkConfig, currentNetwork } = useNetwork();
-  const { userStats, gameStats, loading } = useGameData(publicKey?.toString(), true);
+  const { userStats, gameStats, configData, loading } = useGameData(publicKey?.toString(), true);
+
+  // Calculate withdrawal penalty status
+  const getWithdrawalStatus = () => {
+    if (!userStats || !userStats.lastWithdrawTime) {
+      return { isPenaltyFree: true, timeRemaining: 0, message: 'First withdrawal will be penalty-free' };
+    }
+    
+    const currentTime = Date.now();
+    const lastWithdrawTime = userStats.lastWithdrawTime * 1000; // Convert to milliseconds
+    const hoursSinceLastWithdraw = (currentTime - lastWithdrawTime) / (1000 * 60 * 60);
+    const isPenaltyFree = hoursSinceLastWithdraw >= 24;
+    const timeRemaining = isPenaltyFree ? 0 : (24 - hoursSinceLastWithdraw) * 3600; // in seconds
+    
+    return {
+      isPenaltyFree,
+      timeRemaining,
+      message: isPenaltyFree 
+        ? 'Next withdrawal will be penalty-free' 
+        : `50% penalty for ${formatTime(timeRemaining)}`
+    };
+  };
+
+  const withdrawalStatus = getWithdrawalStatus();
+
   if (!publicKey) {
     return (
       <div className="card p-8 lg:p-12 text-center">
@@ -112,7 +136,7 @@ export const Dashboard: React.FC = () => {
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 transition-all duration-300">
           <div className="card-header">
             <TrendingUp className="text-blue-600" size={32} />
-            <h3 className="text-xl font-bold text-gray-800">Game Stats</h3>
+            <h4 className="text-lg font-bold text-gray-800">⚡ Live Economics</h4>
           </div>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -122,63 +146,102 @@ export const Dashboard: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">⚡ Reward Rate:</span>
-              <span className="text-xl font-bold text-gray-800 transition-all duration-300">
-                {formatNumber(gameStats?.currentRewardRate || 0)}/min
+              <span className="text-gray-600">Daily ROI:</span>
+              <span className="font-bold text-success-600 transition-all duration-300">
+                {gameStats?.currentCowPrice && gameStats?.currentRewardRate 
+                  ? `${((gameStats.currentRewardRate / gameStats.currentCowPrice) * 100).toFixed(2)}%`
+                  : '0.00%'
+                }
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">📅 Days Elapsed:</span>
+              <span className="text-gray-600 font-medium">📅 Proto Live:</span>
               <span className="text-xl font-bold text-gray-800 transition-all duration-300">
-                {gameStats?.daysElapsed || 0}
+                {(() => {
+                  if (!configData || !configData.startTime) {
+                    return '0s';
+                  }
+                  
+                  const currentTime = Math.floor(Date.now() / 1000);
+                  const startTime = typeof configData.startTime === 'number' 
+                    ? configData.startTime 
+                    : (configData.startTime.toNumber ? configData.startTime.toNumber() : 0);
+                  
+                  const elapsedSeconds = currentTime - startTime;
+                  
+                  return formatTime(elapsedSeconds);
+                })()}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 font-medium">🚀 Greed Bonus:</span>
+              <span className="text-xl font-bold text-success-600 transition-all duration-300">
+                {gameStats?.greedMultiplier ? `${gameStats.greedMultiplier.toFixed(2)}x` : '1.00x'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Timing Stats */}
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200 md:col-span-2 lg:col-span-1 transition-all duration-300">
+        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200 transition-all duration-300">
           <div className="card-header">
-            <Clock className="text-orange-600" size={32} />
-            <h3 className="text-xl font-bold text-gray-800">Timing</h3>
+            <Shield className="text-red-600" size={28} />
+            <h4 className="text-lg font-bold text-gray-800">🛡️ Anti-Dump Status</h4>
           </div>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">⏰ Next Halving:</span>
-              <span className="text-lg font-bold text-gray-800 transition-all duration-300">
-                {formatTime(gameStats?.timeToNextHalving || 0)}
+              <span className="text-gray-600">Withdrawal status:</span>
+              <span className={`font-bold ${withdrawalStatus.isPenaltyFree ? 'text-success-600' : 'text-warning-600'}`}>
+                {withdrawalStatus.isPenaltyFree ? '✅ Penalty-free' : '⚠️ 50% penalty'}
               </span>
             </div>
-            {(gameStats?.hoursElapsed || 0) < 5 && (
+            {!withdrawalStatus.isPenaltyFree && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600 font-medium">📈 Price Update:</span>
+                <span className="text-gray-600">Time to penalty-free:</span>
                 <span className="text-lg font-bold text-gray-800 transition-all duration-300">
-                  {formatTime(gameStats?.timeToNextPriceUpdate || 0)}
+                  {formatTime(withdrawalStatus.timeRemaining)}
                 </span>
               </div>
             )}
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">🔄 Halving Period:</span>
-              <span className="text-lg font-bold text-gray-800 transition-all duration-300">
-                #{(gameStats?.halvingPeriod || 0) + 1} / 10
+              <span className="text-gray-600">Penalty rate:</span>
+              <span className="font-bold text-gray-800">
+                {withdrawalStatus.isPenaltyFree ? '0%' : '50%'}
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Price Warning */}
-      {(gameStats?.hoursElapsed || 0) < 5 && (
-        <div className="mt-8 bg-gradient-to-r from-warning-100 to-warning-200 border border-warning-300 rounded-2xl p-6 transition-all duration-300">
+      {/* Anti-Dump Protocol Info */}
+      <div className="mt-8 bg-gradient-to-r from-red-100 to-red-200 border border-red-300 rounded-2xl p-6 transition-all duration-300">
+        <div className="flex items-start gap-4">
+          <Shield className="text-red-600 flex-shrink-0 mt-1" size={24} />
+          <div>
+            <h4 className="text-lg font-bold text-red-800 mb-2">
+              🛡️ Anti-Dump Protection Active
+            </h4>
+            <p className="text-red-700 leading-relaxed">
+              Our protocol implements a 24-hour cooling period with 50% penalty for rapid withdrawals. 
+              This innovative mechanism reduces sell pressure and rewards patient farmers. 
+              Penalty tokens stay in the pool, increasing TVL and benefiting all players.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Early Adopter Bonus */}
+      {(gameStats?.greedMultiplier || 1) > 2 && (
+        <div className="mt-4 bg-gradient-to-r from-warning-100 to-warning-200 border border-warning-300 rounded-2xl p-6 transition-all duration-300">
           <div className="flex items-start gap-4">
             <TrendingUp className="text-warning-600 flex-shrink-0 mt-1" size={24} />
             <div>
               <h4 className="text-lg font-bold text-warning-800 mb-2">
-                ⚠️ Price Escalation Active!
+                🚀 Early Adopter Greed Bonus Active!
               </h4>
               <p className="text-warning-700 leading-relaxed">
-                Cow prices double every hour for the first 4 hours. 
-                Current multiplier: <strong className="transition-all duration-300">{gameStats?.priceMultiplier}x</strong>
+                You're earning bonus rewards as an early adopter! 
+                Current greed multiplier: <strong className="transition-all duration-300">{gameStats?.greedMultiplier.toFixed(2)}x</strong>. 
+                This bonus decays as more players join the ecosystem.
               </p>
             </div>
           </div>

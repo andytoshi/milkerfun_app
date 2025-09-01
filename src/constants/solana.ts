@@ -4,11 +4,11 @@ export const NETWORKS = {
   devnet: {
     name: 'Devnet',
     rpcUrl: 'https://api.devnet.solana.com',
-    programId: new PublicKey('F96zBjzPDVyYFdzJAaH8rnkgJuusH3ecEh5Q2U7GffE5'),
+    programId: new PublicKey('Aknxju7fmwfMMzneFJxqeWSnEeT7fKeo9c8o3fKkaPT8'),
     milkMint: new PublicKey('H5b47NLbNgTAAMpz3rZKAfcoJ2JdGWKcEuEK51ghCbbY'),
-    configPda: new PublicKey('5tiMmxgKCHrmGd4sVEYaG4FwD2HNpVLHy2W7VUh9FyRo'),
-    poolAuthorityPda: new PublicKey('5unQYnYkXNthDYH8MUUD1otRt6sbeoAm2GLAJ9kFbzYo'),
-    poolTokenAccount: new PublicKey('6vLghnr8127cdaeeURMSHHgHEeqNnrA7v9aWbf3B8jkw'),
+    configPda: new PublicKey('bsqQtwEVKNN8RKAgfiRLryk8zBA3t3bMftL3szKNfbQ'),
+    poolAuthorityPda: new PublicKey('HAAUNvsDNgLwqXVnvAEfjrdH6iCXBmjWLAMShL2qsn9M'),
+    poolTokenAccount: new PublicKey('4j2epXmrbHvb1t8wTHuSpnXWWg1eHyqaQ2iTjJGf9MfN'),
     explorerUrl: 'https://explorer.solana.com',
   },
   mainnet: {
@@ -26,13 +26,19 @@ export const NETWORKS = {
 export type NetworkType = keyof typeof NETWORKS;
 
 export const GAME_CONFIG = {
-  INITIAL_COW_PRICE: 6000, // 6000 MILK
-  BASE_REWARD_RATE: 100, // 100 MILK per cow per minute
-  HALVING_INTERVAL_DAYS: 10,
-  MAX_HALVING_PERIODS: 10,
-  MIN_REWARD_RATE: 10, // 10 MILK per cow per minute
-  PRICE_ESCALATION_HOURS: 4, // Price doubles every hour for 4 hours
-  MAX_PRICE_MULTIPLIER: 16, // 2^4 = 16x after 4 hours
+  // Economic constants matching smart contract
+  COW_BASE_PRICE: 6000, // 6,000 MILK base price
+  PRICE_PIVOT: 1000.0, // C_pivot for pricing curve
+  PRICE_STEEPNESS: 1.0, // α for pricing curve
+  REWARD_BASE: 150000, // 150,000 MILK base reward per day
+  REWARD_SENSITIVITY: 0.8, // α_reward for TVL sensitivity
+  TVL_NORMALIZATION: 50000, // 50,000 MILK normalization factor
+  MIN_REWARD_PER_DAY: 10, // 10 MILK minimum per cow per day
+  GREED_MULTIPLIER: 5.0, // β for early adopter bonus
+  GREED_DECAY_PIVOT: 250.0, // C₀ for greed decay
+  INITIAL_TVL: 50000000, // 50M MILK initial TVL
+  MAX_HALVING_PERIODS: 10, // Maximum halving periods (legacy)
+  MIN_REWARD_RATE: 10, // Minimum reward rate (legacy display)
   MILK_DECIMALS: 6,
 } as const;
 

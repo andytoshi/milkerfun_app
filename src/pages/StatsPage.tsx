@@ -11,7 +11,7 @@ export const StatsPage: React.FC = () => {
   const { publicKey } = useWallet();
   const { connection } = useConnection();
   const { networkConfig } = useNetwork();
-  const { gameStats, configData, loading, error, refetch } = useGameData(publicKey?.toString(), false); // No auto-refresh
+  const { gameStats, configData, globalStats, loading, error, refetch } = useGameData(publicKey?.toString(), false); // No auto-refresh
   
   const [totalStats, setTotalStats] = useState<{ totalPlayers: number; totalCows: number }>({ totalPlayers: 0, totalCows: 0 });
   const [totalStatsLoading, setTotalStatsLoading] = useState(false);
@@ -49,7 +49,7 @@ export const StatsPage: React.FC = () => {
             📊 Game Statistics
           </h1>
           <p className="text-lg sm:text-xl text-white/90 text-shadow">
-            Track game progress, economics, and your performance!
+            Real-time blockchain data, economic metrics, and protocol analytics!
           </p>
         </div>
       </div>
@@ -59,7 +59,8 @@ export const StatsPage: React.FC = () => {
         <GameStats 
           gameStats={gameStats}
           configData={configData}
-          totalStats={totalStats}
+          totalStats={globalStats ? { totalPlayers: globalStats.globalCows, totalCows: globalStats.globalCows } : totalStats}
+          globalStats={globalStats}
           loading={loading || totalStatsLoading}
           error={error || totalStatsError}
           onRefresh={handleRefresh}

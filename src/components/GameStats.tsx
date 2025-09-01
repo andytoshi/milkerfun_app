@@ -1,15 +1,17 @@
 import React from 'react';
 import { useNetwork } from '../hooks/useNetwork';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { TrendingUp, Calendar, Zap, Target, Users, RefreshCw } from 'lucide-react';
+import { TrendingUp, Calendar, Zap, Target, Users, RefreshCw, DollarSign, Shield } from 'lucide-react';
 import { formatNumber, formatTime } from '../utils/format';
 import { GAME_CONFIG } from '../constants/solana';
-import type { GameCalculations, ConfigAccount } from '../types/program';
+import { calculateDynamicCowPrice, calculateDynamicRewardRate, calculateGreedMultiplier } from '../utils/program';
+import type { GameCalculations } from '../types/program';
 
 interface GameStatsProps {
   gameStats: GameCalculations | null;
-  configData: ConfigAccount | null;
+  configData: any;
   totalStats: { totalPlayers: number; totalCows: number };
+  globalStats: { globalCows: number; tvl: number } | null;
   loading: boolean;
   error: string | null;
   onRefresh: () => Promise<void>;
@@ -19,6 +21,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
   gameStats,
   configData,
   totalStats,
+  globalStats,
   loading,
   error,
   onRefresh
@@ -30,10 +33,30 @@ export const GameStats: React.FC<GameStatsProps> = ({
     if (!configData) return 'Loading...';
     
     const currentTime = Math.floor(Date.now() / 1000);
-    const elapsedSeconds = currentTime - configData.startTime.toNumber();
+    const startTime = configData.startTime?.toNumber ? configData.startTime.toNumber() : (currentTime - (7 * 24 * 3600));
+    const elapsedSeconds = currentTime - startTime;
+    
+    console.log('Time calculation:', {
+      currentTime,
+      startTime,
+      elapsedSeconds,
+      formatted: formatTime(elapsedSeconds)
+    });
     
     return formatTime(elapsedSeconds);
   };
+
+  // Calculate real TVL metrics
+  const getTVLMetrics = () => {
+    if (!globalStats) return { tvlInMilk: 0, tvlPerCow: 0 };
+    
+    const tvlInMilk = globalStats.tvl / 1_000_000;
+    const tvlPerCow = globalStats.globalCows > 0 ? tvlInMilk / globalStats.globalCows : 0;
+    
+    return { tvlInMilk, tvlPerCow };
+  };
+
+  const { tvlInMilk, tvlPerCow } = getTVLMetrics();
 
   if (loading) {
     return (
@@ -72,20 +95,26 @@ export const GameStats: React.FC<GameStatsProps> = ({
     );
   }
 
-  // Generate chart data
-  const priceData = Array.from({ length: 25 }, (_, hour) => {
-    const basePrice = configData?.cowInitialCost.toNumber() / 1_000_000 || GAME_CONFIG.INITIAL_COW_PRICE;
+  // Generate chart data for price curve
+  const priceData = Array.from({ length: 101 }, (_, index) => {
+    const globalCows = index * 50; // 0, 50, 100, ... 5000 cows
+    const price = calculateDynamicCowPrice(globalCows);
     return {
-      hour,
-      price: basePrice * Math.pow(2, Math.min(hour, 4)),
+      cows: globalCows,
+      price: price,
     };
   });
 
-  const rewardData = Array.from({ length: 11 }, (_, period) => {
-    const baseRate = configData?.baseMilkPerCowPerMin.toNumber() / 1_000_000 || GAME_CONFIG.BASE_REWARD_RATE;
+  // Generate chart data for reward rates
+  const rewardData = Array.from({ length: 101 }, (_, index) => {
+    const globalCows = index * 50; // 0, 50, 100, ... 5000 cows
+    const tvl = globalStats?.tvl || 50000000 * 1_000_000; // Use real TVL or default
+    const rewardRate = calculateDynamicRewardRate(globalCows, tvl);
+    const greedMultiplier = calculateGreedMultiplier(globalCows);
     return {
-      period: period + 1,
-      rate: Math.max(baseRate / Math.pow(2, period), GAME_CONFIG.MIN_REWARD_RATE),
+      cows: globalCows,
+      rate: rewardRate,
+      greedMultiplier: greedMultiplier,
     };
   });
 
@@ -118,7 +147,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
         <div className="card p-6 bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <div className="card-header">
             <Calendar className="text-purple-600" size={28} />
-            <h4 className="text-lg font-bold text-gray-800">🎮 Game Progress</h4>
+            <h4 className="text-lg font-bold text-gray-800">🎮 Protocol Status</h4>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
@@ -126,68 +155,70 @@ export const GameStats: React.FC<GameStatsProps> = ({
               <span className="font-bold text-gray-800">{getTimeSinceStart()}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Halving stage:</span>
-              <span className="font-bold text-gray-800">
-                #{(gameStats?.halvingPeriod || 0) + 1} / {GAME_CONFIG.MAX_HALVING_PERIODS}
+              <span className="text-gray-600">Total TVL:</span>
+              <span className="font-bold text-success-600">
+                {formatNumber(tvlInMilk)} MILK
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Network:</span>
-              <span className="font-bold text-gray-800 capitalize">{currentNetwork}</span>
+              <span className="text-gray-600">TVL per Cow:</span>
+              <span className="font-bold text-gray-800">
+                {formatNumber(tvlPerCow)} MILK
+              </span>
             </div>
           </div>
         </div>
 
         <div className="card p-6 bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <div className="card-header">
-            <Zap className="text-green-600" size={28} />
-            <h4 className="text-lg font-bold text-gray-800">⚡ Live Rates</h4>
+            <DollarSign className="text-green-600" size={28} />
+            <h4 className="text-lg font-bold text-gray-800">💰 ROI Metrics</h4>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600">Reward rate:</span>
+              <span className="text-gray-600">Daily ROI:</span>
               <span className="font-bold text-success-600 transition-all duration-300">
-                {formatNumber(gameStats?.currentRewardRate || 0)}/min
+                {gameStats?.currentCowPrice && gameStats?.currentRewardRate 
+                  ? `${((gameStats.currentRewardRate / gameStats.currentCowPrice) * 100).toFixed(2)}%`
+                  : '0.00%'
+                }
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Cow price:</span>
+              <span className="text-gray-600">Break-even time:</span>
               <span className="font-bold text-success-600 transition-all duration-300">
-                {formatNumber(gameStats?.currentCowPrice || 0)} MILK
+                {gameStats?.currentCowPrice && gameStats?.currentRewardRate 
+                  ? `${(gameStats.currentCowPrice / gameStats.currentRewardRate).toFixed(1)} days`
+                  : 'N/A'
+                }
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Price multiplier:</span>
               <span className="font-bold text-success-600 transition-all duration-300">
-                {gameStats?.priceMultiplier || 1}x
+                {gameStats?.priceMultiplier ? `${gameStats.priceMultiplier.toFixed(2)}x` : '1.00x'}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="card p-6 bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+        <div className="card p-6 bg-gradient-to-br from-red-50 to-red-100 border-red-200">
           <div className="card-header">
-            <Target className="text-orange-600" size={28} />
-            <h4 className="text-lg font-bold text-gray-800">⏰ Next Events</h4>
+            <Shield className="text-red-600" size={28} />
+            <h4 className="text-lg font-bold text-gray-800">🛡️ Anti-Dump Status</h4>
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600">Next halving:</span>
-              <span className="font-bold text-gray-800">
-                {formatTime(gameStats?.timeToNextHalving || 0)}
-              </span>
+              <span className="text-gray-600">Status:</span>
+              <span className="font-bold text-success-600">✅ Active</span>
             </div>
-            {(gameStats?.hoursElapsed || 0) < 5 && (
-              <div className="flex justify-between">
-                <span className="text-gray-600">Price update:</span>
-                <span className="font-bold text-gray-800">
-                  {formatTime(gameStats?.timeToNextPriceUpdate || 0)}
-                </span>
-              </div>
-            )}
             <div className="flex justify-between">
-              <span className="text-gray-600">Reward floor:</span>
-              <span className="font-bold text-gray-800">{GAME_CONFIG.MIN_REWARD_RATE}/min</span>
+              <span className="text-gray-600">Penalty rate:</span>
+              <span className="font-bold text-gray-800">50%</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Cooling period:</span>
+              <span className="font-bold text-gray-800">24 hours</span>
             </div>
           </div>
         </div>
@@ -199,22 +230,20 @@ export const GameStats: React.FC<GameStatsProps> = ({
           </div>
           <div className="space-y-3">
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Players:</span>
+              <span className="text-gray-600">Global Cows:</span>
               <span className="font-bold text-success-600 transition-all duration-300">
-                {formatNumber(totalStats.totalPlayers)}
+                {formatNumber(globalStats?.globalCows || 0)}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Cows:</span>
+              <span className="text-gray-600">Current Price:</span>
               <span className="font-bold text-success-600 transition-all duration-300">
-                {formatNumber(totalStats.totalCows)}
+                {formatNumber(gameStats?.currentCowPrice || GAME_CONFIG.COW_BASE_PRICE)} MILK
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 text-xs">Program ID:</span>
-              <code className="text-xs bg-gray-200 px-2 py-1 rounded font-mono text-purple-600">
-                {networkConfig.programId.toString().slice(0, 8)}...
-              </code>
+              <span className="text-gray-600">Network:</span>
+              <span className="font-bold text-gray-800 capitalize">{currentNetwork}</span>
             </div>
           </div>
         </div>
@@ -224,17 +253,18 @@ export const GameStats: React.FC<GameStatsProps> = ({
       <div className="grid lg:grid-cols-2 gap-8">
         <div className="card p-6 lg:p-8">
           <h4 className="text-xl font-bold text-gray-800 mb-6 text-center">
-            🐄 Live Cow Price Growth Curve (First 24 Hours)
+            🐄 Dynamic Cow Price Bonding Curve
           </h4>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={priceData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
-                  dataKey="hour" 
+                  dataKey="cows" 
                   stroke="#6b7280"
                   fontSize={12}
                   tickLine={false}
+                  tickFormatter={(value) => formatNumber(value)}
                 />
                 <YAxis 
                   stroke="#6b7280"
@@ -244,7 +274,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
                 />
                 <Tooltip 
                   formatter={(value) => [formatNumber(value as number), 'Price (MILK)']}
-                  labelFormatter={(label) => `Hour ${label}`}
+                  labelFormatter={(label) => `${formatNumber(label)} Cows`}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
@@ -257,30 +287,36 @@ export const GameStats: React.FC<GameStatsProps> = ({
                   dataKey="price" 
                   stroke="#8b5cf6" 
                   strokeWidth={3}
-                  dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                  dot={false}
                   activeDot={{ r: 6, stroke: '#8b5cf6', strokeWidth: 2, fill: '#a855f7' }}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
           <p className="text-sm text-gray-500 text-center mt-4 italic">
-            ⚠️ Price doubles every hour for the first 4 hours, then remains constant at 16x
+            📈 Price follows bonding curve: P(c) = 6,000 × (1 + (c/1,000)^1.0)
+            {globalStats && (
+              <span className="block text-red-600 font-semibold mt-1">
+                Current: {formatNumber(globalStats.globalCows)} cows at {formatNumber(calculateDynamicCowPrice(globalStats.globalCows))} MILK
+              </span>
+            )}
           </p>
         </div>
 
         <div className="card p-6 lg:p-8">
           <h4 className="text-xl font-bold text-gray-800 mb-6 text-center">
-            ⚡ Live Reward Rate Halving Schedule
+            ⚡ Dynamic Reward Rate
           </h4>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={rewardData}>
+              <LineChart data={rewardData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis 
-                  dataKey="period" 
+                  dataKey="cows" 
                   stroke="#6b7280"
                   fontSize={12}
                   tickLine={false}
+                  tickFormatter={(value) => formatNumber(value)}
                 />
                 <YAxis 
                   stroke="#6b7280"
@@ -289,8 +325,8 @@ export const GameStats: React.FC<GameStatsProps> = ({
                   tickFormatter={(value) => formatNumber(value)}
                 />
                 <Tooltip 
-                  formatter={(value) => [formatNumber(value as number), 'Rate (MILK/cow/min)']}
-                  labelFormatter={(label) => `Period ${label}`}
+                  formatter={(value) => [formatNumber(value as number), 'Rate (MILK/cow/day)']}
+                  labelFormatter={(label) => `${formatNumber(label)} Cows`}
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #e5e7eb',
@@ -298,61 +334,68 @@ export const GameStats: React.FC<GameStatsProps> = ({
                     boxShadow: '0 10px 25px rgba(0,0,0,0.1)'
                   }}
                 />
-                <Bar 
+                <Line 
+                  type="monotone"
                   dataKey="rate" 
-                  fill="#10b981" 
-                  radius={[4, 4, 0, 0]}
+                  stroke="#10b981" 
+                  strokeWidth={3}
+                  dot={false}
+                  activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2, fill: '#22c55e' }}
                 />
-              </BarChart>
+              </LineChart>
             </ResponsiveContainer>
           </div>
           <p className="text-sm text-gray-500 text-center mt-4 italic">
-            📉 Reward rate halves every 10 days, with a minimum floor of {GAME_CONFIG.MIN_REWARD_RATE} MILK/cow/min
+            📊 R = 150k / (1 + 0.8 × TVL/Cow / 50k) × (1 + 5 × e^(-C/250))
+            {globalStats && (
+              <span className="block text-red-600 font-semibold mt-1">
+                Current: {formatNumber(calculateDynamicRewardRate(globalStats.globalCows, globalStats.tvl))} MILK/cow/day
+              </span>
+            )}
           </p>
         </div>
       </div>
 
-      {/* Game Mechanics */}
+      {/* Protocol Innovation */}
       <div className="card p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
         <h4 className="text-2xl font-bold text-center text-gray-800 mb-8">
-          🎮 How Milker.fun Works (Live Game Rules)
+          🧮 Advanced Economic Protocol
         </h4>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
             <div className="text-3xl mb-3 text-center">🐄</div>
-            <h5 className="text-lg font-bold text-purple-600 mb-3">Buy Cows</h5>
+            <h5 className="text-lg font-bold text-purple-600 mb-3">Dynamic Pricing</h5>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Purchase cows with MILK tokens. Current price: 
-              <strong className="text-success-600"> {formatNumber(gameStats?.currentCowPrice || 0)} MILK</strong>. 
-              Price doubles every hour for the first 4 hours.
+              Exponential bonding curve prevents infinite supply. 
+              Current price: <strong className="text-success-600">{formatNumber(gameStats?.currentCowPrice || GAME_CONFIG.COW_BASE_PRICE)} MILK</strong>. 
+              Creates natural supply constraints.
             </p>
           </div>
           
           <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
             <div className="text-3xl mb-3 text-center">🥛</div>
-            <h5 className="text-lg font-bold text-green-600 mb-3">Earn Rewards</h5>
+            <h5 className="text-lg font-bold text-green-600 mb-3">TVL-Responsive Rewards</h5>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Each cow produces MILK automatically. Current rate: 
-              <strong className="text-success-600"> {formatNumber(gameStats?.currentRewardRate || 0)} MILK/cow/min</strong>. 
-              Rate halves every 10 days.
+              Anti-inflationary mechanism adjusts rewards based on TVL concentration. 
+              Current rate: <strong className="text-success-600">{formatNumber(gameStats?.currentRewardRate || GAME_CONFIG.REWARD_BASE)} MILK/cow/day</strong>.
             </p>
           </div>
           
           <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <div className="text-3xl mb-3 text-center">🔄</div>
-            <h5 className="text-lg font-bold text-blue-600 mb-3">Compound</h5>
+            <div className="text-3xl mb-3 text-center">🚀</div>
+            <h5 className="text-lg font-bold text-blue-600 mb-3">Greed Multiplier</h5>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Use earned rewards to buy more cows without spending from your wallet. 
-              Maximize your farming efficiency!
+              Early adopter bonus decays exponentially from 6x to 1x. 
+              Current multiplier: <strong className="text-success-600">{gameStats?.greedMultiplier?.toFixed(2) || '6.00'}x</strong>.
             </p>
           </div>
           
           <div className="bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-shadow">
-            <div className="text-3xl mb-3 text-center">💰</div>
-            <h5 className="text-lg font-bold text-orange-600 mb-3">Withdraw</h5>
+            <div className="text-3xl mb-3 text-center">🛡️</div>
+            <h5 className="text-lg font-bold text-red-600 mb-3">Anti-Dump Protocol</h5>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Cash out your accumulated MILK rewards to your wallet anytime. 
-              No fees, instant transfers!
+              24-hour cooling mechanism with 50% penalty redistribution. 
+              Penalties increase TVL, benefiting all holders.
             </p>
           </div>
         </div>

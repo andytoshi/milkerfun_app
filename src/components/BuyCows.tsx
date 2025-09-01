@@ -88,7 +88,7 @@ export const BuyCows: React.FC = () => {
         {(gameStats?.hoursElapsed || 0) < 5 && (
           <div className="flex items-center gap-2 text-warning-700 text-sm font-medium">
             <AlertTriangle size={16} />
-            <span>Price doubles every hour! (First 4 hours only)</span>
+            <span>Early adopter greed bonus active! Current multiplier: {gameStats?.greedMultiplier ? `${gameStats.greedMultiplier.toFixed(2)}x` : '6.00x'}</span>
           </div>
         )}
       </div>

@@ -26,4 +26,5 @@ export interface GameCalculations {
   hoursElapsed: number;
   halvingPeriod: number;
   priceMultiplier: number;
+  greedMultiplier: number;
 }

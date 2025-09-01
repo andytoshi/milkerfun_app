@@ -4,6 +4,52 @@ import { BN } from '@coral-xyz/anchor';
 import { GAME_CONFIG } from '../constants/solana';
 import type { ConfigAccount, FarmAccount, GameCalculations } from '../types/program';
 
+// New economic calculation functions matching smart contract
+export const calculateDynamicCowPrice = (globalCows: number): number => {
+  if (globalCows === 0) {
+    return GAME_CONFIG.COW_BASE_PRICE;
+  }
+
+  const ratio = globalCows / GAME_CONFIG.PRICE_PIVOT;
+  const powerTerm = Math.pow(ratio, GAME_CONFIG.PRICE_STEEPNESS);
+  const multiplier = 1.0 + powerTerm;
+  
+  return GAME_CONFIG.COW_BASE_PRICE * multiplier;
+};
+
+export const calculateDynamicRewardRate = (globalCows: number, tvl: number): number => {
+  if (globalCows === 0) {
+    return GAME_CONFIG.MIN_REWARD_PER_DAY;
+  }
+
+  // Calculate TVL per cow ratio
+  const tvlPerCow = tvl / globalCows;
+  const normalizedRatio = tvlPerCow / (GAME_CONFIG.TVL_NORMALIZATION * 1_000_000);
+  
+  // Calculate base reward with decay
+  const denominator = 1.0 + (GAME_CONFIG.REWARD_SENSITIVITY * normalizedRatio);
+  const baseReward = GAME_CONFIG.REWARD_BASE / denominator;
+  
+  // Apply greed multiplier: G(C) = 1 + β * e^(-C/C₀)
+  const greedDecay = Math.exp(-globalCows / GAME_CONFIG.GREED_DECAY_PIVOT);
+  const greedMultiplier = 1.0 + (GAME_CONFIG.GREED_MULTIPLIER * greedDecay);
+  
+  // Calculate final reward rate
+  const rewardWithGreed = baseReward * greedMultiplier;
+  return Math.max(rewardWithGreed, GAME_CONFIG.MIN_REWARD_PER_DAY);
+};
+
+export const calculateGreedMultiplier = (globalCows: number): number => {
+  const greedDecay = Math.exp(-globalCows / GAME_CONFIG.GREED_DECAY_PIVOT);
+  return 1.0 + (GAME_CONFIG.GREED_MULTIPLIER * greedDecay);
+};
+
+export const calculateWithdrawalPenalty = (hoursSinceLastWithdraw: number): { penaltyRate: number; isPenaltyFree: boolean } => {
+  const isPenaltyFree = hoursSinceLastWithdraw >= 24 || hoursSinceLastWithdraw === 0;
+  const penaltyRate = isPenaltyFree ? 0 : 0.5; // 50% penalty
+  return { penaltyRate, isPenaltyFree };
+};
+
 import { sha256 } from '@noble/hashes/sha256';
 
 // Generate proper Anchor method discriminators
@@ -17,11 +63,6 @@ export const BUY_COWS_DISCRIMINATOR = getMethodDiscriminator('buy_cows');
 export const WITHDRAW_MILK_DISCRIMINATOR = getMethodDiscriminator('withdraw_milk');
 export const COMPOUND_COWS_DISCRIMINATOR = getMethodDiscriminator('compound_cows');
 
-console.log('Method discriminators:', {
-  buy_cows: Array.from(BUY_COWS_DISCRIMINATOR).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '),
-  withdraw_milk: Array.from(WITHDRAW_MILK_DISCRIMINATOR).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '),
-  compound_cows: Array.from(COMPOUND_COWS_DISCRIMINATOR).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '),
-});
 
 // Program instruction discriminators (first 8 bytes of instruction data)
 const INSTRUCTION_DISCRIMINATORS = {
@@ -108,35 +149,23 @@ export const calculateGameStats = (config: ConfigAccount): GameCalculations => {
   const daysElapsed = Math.floor(elapsedSeconds / 86400);
   const hoursElapsed = Math.floor(elapsedSeconds / 3600);
   
-  // Calculate current cow price (doubles every hour for first 4 hours)
-  const priceHours = Math.min(hoursElapsed, GAME_CONFIG.PRICE_ESCALATION_HOURS);
-  const priceMultiplier = Math.pow(2, priceHours);
-  const currentCowPrice = (config.cowInitialCost.toNumber() * priceMultiplier) / Math.pow(10, GAME_CONFIG.MILK_DECIMALS);
-  
-  // Calculate current reward rate (halves every 10 days)
-  const halvingPeriod = Math.floor(daysElapsed / GAME_CONFIG.HALVING_INTERVAL_DAYS);
-  const currentRewardRate = Math.max(
-    config.baseMilkPerCowPerMin.toNumber() / Math.pow(2, halvingPeriod),
-    GAME_CONFIG.MIN_REWARD_RATE * Math.pow(10, GAME_CONFIG.MILK_DECIMALS)
-  ) / Math.pow(10, GAME_CONFIG.MILK_DECIMALS);
-  
-  // Time calculations
-  const nextHalvingTime = config.startTime.toNumber() + ((halvingPeriod + 1) * GAME_CONFIG.HALVING_INTERVAL_DAYS * 86400);
-  const timeToNextHalving = Math.max(0, nextHalvingTime - currentTime);
-  
-  const nextPriceUpdateTime = config.startTime.toNumber() + ((Math.floor(elapsedSeconds / 3600) + 1) * 3600);
-  const timeToNextPriceUpdate = Math.max(0, nextPriceUpdateTime - currentTime);
+  // These will be calculated with actual global data
+  const currentCowPrice = GAME_CONFIG.COW_BASE_PRICE; // Default, will be updated with real data
+  const currentRewardRate = GAME_CONFIG.REWARD_BASE; // Default, will be updated with real data
+  const priceMultiplier = 1.0; // Will be calculated based on global cows
+  const greedMultiplier = 6.0; // Default maximum greed multiplier, will be updated with real data
 
   return {
     currentCowPrice,
     currentRewardRate,
     pendingRewards: 0, // Will be calculated separately with farm data
-    timeToNextHalving,
-    timeToNextPriceUpdate,
+    timeToNextHalving: 0, // Not applicable in new model
+    timeToNextPriceUpdate: 0, // Not applicable in new model
     daysElapsed,
     hoursElapsed,
-    halvingPeriod,
+    halvingPeriod: 0, // Not applicable in new model
     priceMultiplier,
+    greedMultiplier,
   };
 };
 
@@ -293,7 +322,7 @@ export const calculateTotalStats = async (
   programId: PublicKey
 ): Promise<{ totalPlayers: number; totalCows: number }> => {
   try {
-    console.log('Fetching total stats (rate limited to prevent 429 errors)...');
+    console.log('Fetching total stats from blockchain...');
     
     // Get all accounts owned by the program
     const accounts = await connection.getProgramAccounts(programId, {
@@ -305,7 +334,7 @@ export const calculateTotalStats = async (
       commitment: 'confirmed', // Use confirmed commitment to reduce load
     });
 
-    console.log(`Found ${accounts.length} program accounts`);
+    console.log(`Found ${accounts.length} farm accounts on-chain`);
 
     let totalPlayers = 0;
     let totalCows = 0;
@@ -328,15 +357,14 @@ export const calculateTotalStats = async (
         }
       } catch (error) {
         // Skip accounts that can't be deserialized as farm accounts
-        console.log('Skipping account that is not a farm:', account.pubkey.toString());
         continue;
       }
     }
 
-    console.log(`📊 Total stats: ${totalPlayers} players, ${totalCows} cows`);
+    console.log(`📊 Real blockchain stats: ${totalPlayers} players, ${totalCows} cows`);
     return { totalPlayers, totalCows };
   } catch (error) {
-    console.error('⚠️ Error calculating total stats (likely rate limited):', error);
+    console.error('⚠️ Error fetching blockchain stats:', error);
     // Return cached/default values instead of throwing to prevent UI errors
     return { totalPlayers: 0, totalCows: 0 };
   }
