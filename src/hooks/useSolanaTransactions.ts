@@ -4,8 +4,7 @@ import { Transaction, TransactionInstruction, SystemProgram } from '@solana/web3
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useNetwork } from './useNetwork';
 import { 
-  createWithdrawMilkInstruction, 
-  createCompoundCowsInstruction,
+  createWithdrawMilkInstruction,
   ensureTokenAccount,
   findProgramAddresses,
   BUY_COWS_DISCRIMINATOR
@@ -251,38 +250,84 @@ export const useSolanaTransactions = () => {
     try {
       console.log('Starting compound cows transaction...', { numCows, publicKey: publicKey.toString() });
       
-      // Create compound instruction
-      const compoundIx = await createCompoundCowsInstruction(
-        networkConfig.programId,
-        publicKey,
-        numCows
-      );
+      // Get PDAs
+      const { configPda, farmPda } = findProgramAddresses(networkConfig.programId, publicKey);
+      
+      console.log('PDAs for compound:', {
+        configPda: configPda.toString(),
+        farmPda: farmPda!.toString(),
+        poolTokenAccount: networkConfig.poolTokenAccount.toString()
+      });
 
-      console.log('Created compound instruction');
+      // Create instruction manually with proper format
+      console.log('Creating compound cows instruction...');
+      const instructionData = Buffer.alloc(16);
+      
+      // Use the actual compound_cows discriminator
+      const { COMPOUND_COWS_DISCRIMINATOR } = await import('../utils/program');
+      COMPOUND_COWS_DISCRIMINATOR.copy(instructionData, 0);
+      
+      // Number of cows as little-endian u64 (next 8 bytes)
+      const numCowsBuffer = Buffer.alloc(8);
+      numCowsBuffer.writeBigUInt64LE(BigInt(numCows), 0);
+      numCowsBuffer.copy(instructionData, 8);
+      
+      console.log('Compound instruction data:', {
+        discriminator: Array.from(instructionData.slice(0, 8)).map(b => '0x' + b.toString(16).padStart(2, '0')).join(' '),
+        numCows: instructionData.readBigUInt64LE(8).toString(),
+        totalLength: instructionData.length
+      });
+
+      // Create instruction
+      const compoundInstruction = new TransactionInstruction({
+        keys: [
+          { pubkey: configPda, isSigner: false, isWritable: true },
+          { pubkey: farmPda!, isSigner: false, isWritable: true },
+          { pubkey: networkConfig.poolTokenAccount, isSigner: false, isWritable: false },
+          { pubkey: publicKey, isSigner: true, isWritable: false },
+        ],
+        programId: networkConfig.programId,
+        data: instructionData,
+      });
 
       const transaction = new Transaction();
-      transaction.add(new TransactionInstruction(compoundIx));
+      transaction.add(compoundInstruction);
+
+      console.log('Transaction created with', transaction.instructions.length, 'instructions');
+      
+      // Get recent blockhash
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
 
       console.log('Sending transaction...');
 
       // Send transaction
       const signature = await sendTransaction(transaction, connection, {
-        skipPreflight: false,
+        skipPreflight: true, // Skip preflight to get better error messages
         preflightCommitment: 'confirmed',
       });
 
       console.log('Transaction sent:', signature);
 
       // Wait for confirmation
+      console.log('Waiting for confirmation...');
       await connection.confirmTransaction(signature, 'confirmed');
       
       console.log('Transaction confirmed:', signature);
       return signature;
     } catch (error) {
       console.error('Error compounding cows:', error);
-      if (error && typeof error === 'object' && 'logs' in error) {
-        console.error('Transaction logs:', (error as any).logs);
+      console.error('Error type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : String(error));
+      
+      if (error && typeof error === 'object') {
+        console.error('Full error object:', error);
+        if ('logs' in error) {
+          console.error('Transaction logs:', (error as any).logs);
+        }
       }
+      
       throw error;
     }
   }, [connection, publicKey, sendTransaction, networkConfig]);

@@ -20,6 +20,14 @@ export const CompoundCows: React.FC = () => {
   const maxAffordableCows = Math.floor(totalRewards / cowPrice);
   const canAfford = totalRewards >= totalCost && numCows <= maxAffordableCows;
 
+  console.log('CompoundCows debug:', {
+    totalRewards,
+    cowPrice,
+    totalCost,
+    maxAffordableCows,
+    canAfford,
+    numCows
+  });
   const handleCompound = async () => {
     if (!publicKey || !canAfford) return;
     
@@ -39,7 +47,22 @@ export const CompoundCows: React.FC = () => {
       setNumCows(1);
     } catch (err) {
       console.error('Error compounding cows:', err);
-      setError('Failed to compound cows. Please try again.');
+      
+      let errorMessage = 'Failed to compound cows. ';
+      if (err instanceof Error) {
+        errorMessage += err.message;
+      }
+      
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      if (errorMsg.includes('insufficient funds')) {
+        errorMessage = 'Insufficient SOL for transaction fees. Add more SOL to your wallet.';
+      } else if (errorMsg.includes('InsufficientRewards')) {
+        errorMessage = 'Insufficient rewards to compound. Wait for more rewards to accumulate.';
+      } else if (errorMsg.includes('User rejected')) {
+        errorMessage = 'Transaction was cancelled by user.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

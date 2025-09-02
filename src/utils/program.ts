@@ -120,6 +120,30 @@ export const deserializeConfig = (data: Buffer): ConfigAccount => {
   };
 };
 
+// Helper function to deserialize farm account data
+export const deserializeFarm = (data: Buffer): FarmAccount => {
+  // Skip 8-byte discriminator
+  let offset = 8;
+  
+  const owner = new PublicKey(data.slice(offset, offset + 32));
+  offset += 32;
+  
+  const cows = new BN(data.slice(offset, offset + 8), 'le');
+  offset += 8;
+  
+  const lastUpdateTime = new BN(data.slice(offset, offset + 8), 'le');
+  offset += 8;
+  
+  const accumulatedRewards = new BN(data.slice(offset, offset + 8), 'le');
+  
+  return {
+    owner,
+    cows,
+    lastUpdateTime,
+    accumulatedRewards,
+  };
+};
+
 export const deserializeFarm = (data: Buffer): FarmAccount => {
   // Skip 8-byte discriminator
   let offset = 8;
@@ -269,6 +293,7 @@ export const createWithdrawMilkInstruction = async (
 export const createCompoundCowsInstruction = async (
   programId: PublicKey,
   userPubkey: PublicKey,
+  poolTokenAccount: PublicKey,
   numCows: number
 ): Promise<{ keys: any[], programId: PublicKey, data: Buffer }> => {
   const { configPda, farmPda } = findProgramAddresses(programId, userPubkey);
@@ -281,8 +306,9 @@ export const createCompoundCowsInstruction = async (
   new BN(numCows).toArrayLike(Buffer, 'le', 8).copy(data, 8);
 
   const keys = [
-    { pubkey: configPda, isSigner: false, isWritable: false },
+    { pubkey: configPda, isSigner: false, isWritable: true },
     { pubkey: farmPda!, isSigner: false, isWritable: true },
+    { pubkey: poolTokenAccount, isSigner: false, isWritable: false },
     { pubkey: userPubkey, isSigner: true, isWritable: false },
   ];
 
