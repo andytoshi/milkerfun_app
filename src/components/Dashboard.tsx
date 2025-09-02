@@ -3,13 +3,13 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useGameData } from '../hooks/useGameData';
 import { useNetwork } from '../hooks/useNetwork';
-import { Milk, TrendingUp, ExternalLink, User, Shield, Activity, Clock } from 'lucide-react';
+import { Milk, TrendingUp, ExternalLink, User, Shield, Activity } from 'lucide-react';
 import { formatNumber, formatTime, shortenAddress } from '../utils/format';
 
 export const Dashboard: React.FC = () => {
   const { publicKey } = useWallet();
   const { networkConfig, currentNetwork } = useNetwork();
-  const { userStats, gameStats, configData, loading } = useGameData(publicKey?.toString(), true);
+  const { userStats, gameStats, loading } = useGameData(publicKey?.toString(), true);
 
   // Calculate withdrawal penalty status
   const getWithdrawalStatus = () => {

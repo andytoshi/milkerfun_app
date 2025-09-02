@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNetwork } from '../hooks/useNetwork';
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
-import { TrendingUp, Calendar, Users, RefreshCw, DollarSign, Shield, Activity, Zap, Target, Clock } from 'lucide-react';
+import { TrendingUp, Users, RefreshCw, DollarSign, Shield, Activity, Zap, Target, Clock } from 'lucide-react';
 import { formatNumber, formatTime } from '../utils/format';
 import { GAME_CONFIG } from '../constants/solana';
 import { calculateDynamicCowPrice, calculateDynamicRewardRate, calculateGreedMultiplier } from '../utils/program';
