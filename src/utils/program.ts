@@ -144,29 +144,6 @@ export const deserializeFarm = (data: Buffer): FarmAccount => {
   };
 };
 
-export const deserializeFarm = (data: Buffer): FarmAccount => {
-  // Skip 8-byte discriminator
-  let offset = 8;
-  
-  const owner = new PublicKey(data.slice(offset, offset + 32));
-  offset += 32;
-  
-  const cows = new BN(data.slice(offset, offset + 8), 'le');
-  offset += 8;
-  
-  const lastUpdateTime = new BN(data.slice(offset, offset + 8), 'le');
-  offset += 8;
-  
-  const accumulatedRewards = new BN(data.slice(offset, offset + 8), 'le');
-  
-  return {
-    owner,
-    cows,
-    lastUpdateTime,
-    accumulatedRewards,
-  };
-};
-
 export const calculateGameStats = (config: ConfigAccount): GameCalculations => {
   const currentTime = Math.floor(Date.now() / 1000);
   const elapsedSeconds = currentTime - config.startTime.toNumber();
