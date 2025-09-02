@@ -3,7 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useGameData } from '../hooks/useGameData';
 import { useNetwork } from '../hooks/useNetwork';
-import { Milk, TrendingUp, ExternalLink, User, Shield } from 'lucide-react';
+import { Milk, TrendingUp, ExternalLink, User, Shield, Activity, Clock } from 'lucide-react';
 import { formatNumber, formatTime, shortenAddress } from '../utils/format';
 
 export const Dashboard: React.FC = () => {
@@ -36,118 +36,132 @@ export const Dashboard: React.FC = () => {
 
   if (!publicKey) {
     return (
-      <div className="card p-8 lg:p-12 text-center">
+      <div className="glass-card p-8 md:p-12 lg:p-16 text-center">
         <div className="relative mb-8">
           <div className="text-6xl lg:text-8xl animate-bounce-slow">🐄</div>
           <div className="absolute -top-2 left-1/2 transform -translate-x-1/2">
-            <Milk size={32} className="text-blue-500 animate-float" />
+            <Milk size={32} className="text-blue-400 animate-float" />
           </div>
         </div>
-        <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-4">
+        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-6 text-shadow-lg">
           Connect Your Wallet to Start Farming! 🐄
         </h2>
-        <p className="text-lg text-gray-600 mb-8">
-          Join the mooooost profitable farming game on Solana!
+        <p className="text-lg md:text-xl text-white/80 mb-8 text-shadow max-w-2xl mx-auto leading-relaxed">
+          Join the mooooost profitable farming game on Solana! Experience revolutionary DeFi through gamification.
         </p>
-        <WalletMultiButton />
+        <div className="flex justify-center">
+          <WalletMultiButton />
+        </div>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="card p-8 lg:p-12 text-center">
-        <div className="text-6xl lg:text-8xl animate-spin-slow mb-6">🐄</div>
-        <p className="text-xl text-gray-600">Loading your farm data...</p>
+      <div className="glass-card p-8 md:p-12 text-center">
+        <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+          <Activity className="text-white animate-pulse" size={32} />
+        </div>
+        <h3 className="text-xl md:text-2xl font-bold text-white mb-4">Loading Your Farm</h3>
+        <p className="text-lg text-white/70">Fetching your data from the blockchain...</p>
+        <div className="flex justify-center mt-6">
+          <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="card p-6 lg:p-8 transition-all duration-300">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-        <div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 mb-2">
-            🧑‍🌾 Your Farm Dashboard
-          </h2>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-gray-600">
-              <User size={16} />
-              <span className="font-mono text-sm">
-                {shortenAddress(publicKey.toString())}
-              </span>
+    <div className="space-y-6 md:space-y-8">
+      {/* Header Card */}
+      <div className="glass-card p-6 md:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center">
+              <User className="text-white" size={24} />
             </div>
-            <a 
-              href={`${networkConfig.explorerUrl}/address/${publicKey.toString()}?cluster=${currentNetwork}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-purple-600 hover:text-purple-700 transition-colors"
-            >
-              <ExternalLink size={16} />
-            </a>
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-white">Your Farm Dashboard</h2>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="text-white/70 font-mono text-sm">
+                  {shortenAddress(publicKey.toString())}
+                </span>
+                <a 
+                  href={`${networkConfig.explorerUrl}/address/${publicKey.toString()}?cluster=${currentNetwork}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  <ExternalLink size={16} />
+                </a>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={`stat-badge ${
-            currentNetwork === 'mainnet' 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-yellow-100 text-yellow-800'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              currentNetwork === 'mainnet' ? 'bg-green-500' : 'bg-yellow-500'
-            }`} />
-            {networkConfig.name}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className={`stat-badge ${
+              currentNetwork === 'mainnet' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${
+                currentNetwork === 'mainnet' ? 'bg-green-500' : 'bg-yellow-500'
+              }`} />
+              {networkConfig.name}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 transition-all duration-300">
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {/* Farm Stats */}
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200 transition-all duration-300">
-          <div className="card-header">
-            <div className="text-3xl">🐄</div>
-            <h3 className="text-xl font-bold text-gray-800">Your Farm</h3>
+        <div className="glass-card p-6 md:p-8 group hover:bg-white/15 transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <span className="text-2xl">🐄</span>
+            </div>
+            <h3 className="text-xl font-bold text-white">Your Farm</h3>
           </div>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">🐄 Cows Owned:</span>
-              <span className="text-2xl font-bold text-gray-800 transition-all duration-300">
+              <span className="text-white/70 font-medium">🐄 Cows Owned:</span>
+              <span className="text-2xl font-bold text-purple-400 transition-all duration-300">
                 {formatNumber(userStats?.cows || 0)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">🥛 MILK Balance:</span>
-              <span className="text-2xl font-bold text-gray-800 transition-all duration-300">
+              <span className="text-white/70 font-medium">🥛 MILK Balance:</span>
+              <span className="text-2xl font-bold text-blue-400 transition-all duration-300">
                 {formatNumber(userStats?.milkBalance || 0)}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">💰 Rewards:</span>
-              <span className="text-2xl font-bold text-success-600 transition-all duration-300">
+              <span className="text-white/70 font-medium">💰 Total Rewards:</span>
+              <span className="text-2xl font-bold text-green-400 transition-all duration-300">
                 {formatNumber(userStats?.totalRewards || 0)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Game Stats */}
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 transition-all duration-300">
-          <div className="card-header">
-            <TrendingUp className="text-blue-600" size={32} />
-            <h4 className="text-lg font-bold text-gray-800">⚡ Live Economics</h4>
+        {/* Economic Stats */}
+        <div className="glass-card p-6 md:p-8 group hover:bg-white/15 transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className="text-white" size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-white">Live Economics</h3>
           </div>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">💰 Cow Price:</span>
-              <span className="text-xl font-bold text-gray-800 transition-all duration-300">
+              <span className="text-white/70 font-medium">💰 Cow Price:</span>
+              <span className="text-xl font-bold text-green-400 transition-all duration-300">
                 {formatNumber(gameStats?.currentCowPrice || 0)} MILK
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Daily ROI:</span>
-              <span className="font-bold text-success-600 transition-all duration-300">
+              <span className="text-white/70 font-medium">⚡ Daily ROI:</span>
+              <span className="text-lg font-bold text-yellow-400 transition-all duration-300">
                 {gameStats?.currentCowPrice && gameStats?.currentRewardRate 
                   ? `${((gameStats.currentRewardRate / gameStats.currentCowPrice) * 100).toFixed(2)}%`
                   : '0.00%'
@@ -155,56 +169,40 @@ export const Dashboard: React.FC = () => {
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">📅 Proto Live:</span>
-              <span className="text-xl font-bold text-gray-800 transition-all duration-300">
-                {(() => {
-                  if (!configData || !configData.startTime) {
-                    return '0s';
-                  }
-                  
-                  const currentTime = Math.floor(Date.now() / 1000);
-                  const startTime = typeof configData.startTime === 'number' 
-                    ? configData.startTime 
-                    : (configData.startTime.toNumber ? configData.startTime.toNumber() : 0);
-                  
-                  const elapsedSeconds = currentTime - startTime;
-                  
-                  return formatTime(elapsedSeconds);
-                })()}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 font-medium">🚀 Greed Bonus:</span>
-              <span className="text-xl font-bold text-success-600 transition-all duration-300">
+              <span className="text-white/70 font-medium">🚀 Greed Bonus:</span>
+              <span className="text-xl font-bold text-yellow-400 transition-all duration-300">
                 {gameStats?.greedMultiplier ? `${gameStats.greedMultiplier.toFixed(2)}x` : '1.00x'}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl p-6 border border-orange-200 transition-all duration-300">
-          <div className="card-header">
-            <Shield className="text-red-600" size={28} />
-            <h4 className="text-lg font-bold text-gray-800">🛡️ Anti-Dump Status</h4>
+        {/* Anti-Dump Status */}
+        <div className="glass-card p-6 md:p-8 group hover:bg-white/15 transition-all duration-300">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Shield className="text-white" size={24} />
+            </div>
+            <h3 className="text-xl font-bold text-white">Anti-Dump Status</h3>
           </div>
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Withdrawal status:</span>
-              <span className={`font-bold ${withdrawalStatus.isPenaltyFree ? 'text-success-600' : 'text-warning-600'}`}>
+              <span className="text-white/70 font-medium">Status:</span>
+              <span className={`font-bold ${withdrawalStatus.isPenaltyFree ? 'text-green-400' : 'text-red-400'}`}>
                 {withdrawalStatus.isPenaltyFree ? '✅ Penalty-free' : '⚠️ 50% penalty'}
               </span>
             </div>
             {!withdrawalStatus.isPenaltyFree && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Time to penalty-free:</span>
-                <span className="text-lg font-bold text-gray-800 transition-all duration-300">
+                <span className="text-white/70 font-medium">Time remaining:</span>
+                <span className="text-lg font-bold text-white transition-all duration-300">
                   {formatTime(withdrawalStatus.timeRemaining)}
                 </span>
               </div>
             )}
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Penalty rate:</span>
-              <span className="font-bold text-gray-800">
+              <span className="text-white/70 font-medium">Penalty rate:</span>
+              <span className="font-bold text-white">
                 {withdrawalStatus.isPenaltyFree ? '0%' : '50%'}
               </span>
             </div>
@@ -212,41 +210,81 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Anti-Dump Protocol Info */}
-      <div className="mt-8 bg-gradient-to-r from-red-100 to-red-200 border border-red-300 rounded-2xl p-6 transition-all duration-300">
-        <div className="flex items-start gap-4">
-          <Shield className="text-red-600 flex-shrink-0 mt-1" size={24} />
-          <div>
-            <h4 className="text-lg font-bold text-red-800 mb-2">
-              🛡️ Anti-Dump Protection Active
-            </h4>
-            <p className="text-red-700 leading-relaxed">
-              Our protocol implements a 24-hour cooling period with 50% penalty for rapid withdrawals. 
-              This innovative mechanism reduces sell pressure and rewards patient farmers. 
-              Penalty tokens stay in the pool, increasing TVL and benefiting all players.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Early Adopter Bonus */}
+      {/* Protocol Warnings/Info */}
       {(gameStats?.greedMultiplier || 1) > 2 && (
-        <div className="mt-4 bg-gradient-to-r from-warning-100 to-warning-200 border border-warning-300 rounded-2xl p-6 transition-all duration-300">
+        <div className="glass-card p-6 md:p-8 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-400/30">
           <div className="flex items-start gap-4">
-            <TrendingUp className="text-warning-600 flex-shrink-0 mt-1" size={24} />
-            <div>
-              <h4 className="text-lg font-bold text-warning-800 mb-2">
-                🚀 Early Adopter Greed Bonus Active!
+            <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">🚀</span>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-xl font-bold text-yellow-400 mb-3">
+                Early Adopter Greed Bonus Active!
               </h4>
-              <p className="text-warning-700 leading-relaxed">
+              <p className="text-white/80 leading-relaxed mb-4">
                 You're earning bonus rewards as an early adopter! 
-                Current greed multiplier: <strong className="transition-all duration-300">{gameStats?.greedMultiplier.toFixed(2)}x</strong>. 
-                This bonus decays as more players join the ecosystem.
+                Current greed multiplier: <strong className="text-yellow-400 transition-all duration-300">{gameStats?.greedMultiplier.toFixed(2)}x</strong>. 
+                This bonus decays exponentially as more players join the ecosystem.
               </p>
+              <div className="bg-white/10 rounded-xl p-4">
+                <div className="text-sm text-white/70 mb-2">Greed Multiplier Formula:</div>
+                <div className="font-mono text-yellow-400 text-lg font-bold">G(C) = 1 + 5 × e^(-C/250)</div>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Anti-Dump Protocol Info */}
+      <div className="glass-card p-6 md:p-8 bg-gradient-to-r from-red-500/20 to-pink-500/20 border-red-400/30">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-red-400 to-red-500 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <Shield className="text-white" size={24} />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xl font-bold text-red-400 mb-3">
+              🛡️ Anti-Dump Protection Active
+            </h4>
+            <p className="text-white/80 leading-relaxed mb-4">
+              Our protocol implements a 24-hour cooling period with 50% penalty for rapid withdrawals. 
+              This innovative mechanism reduces sell pressure and rewards patient farmers. 
+              Penalty tokens stay in the pool, increasing TVL and benefiting all players.
+            </p>
+            
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="bg-white/10 rounded-xl p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-white/70 text-sm">Your Status:</span>
+                  <span className={`font-bold text-sm ${withdrawalStatus.isPenaltyFree ? 'text-green-400' : 'text-red-400'}`}>
+                    {withdrawalStatus.isPenaltyFree ? '✅ Safe' : '⚠️ Penalty'}
+                  </span>
+                </div>
+                {!withdrawalStatus.isPenaltyFree && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/70 text-sm">Time left:</span>
+                    <span className="text-white font-bold text-sm">
+                      {formatTime(withdrawalStatus.timeRemaining)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-white/10 rounded-xl p-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-white/70 text-sm">Penalty Rate:</span>
+                  <span className="text-white font-bold text-sm">
+                    {withdrawalStatus.isPenaltyFree ? '0%' : '50%'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-white/70 text-sm">Redistribution:</span>
+                  <span className="text-green-400 font-bold text-sm">To TVL Pool</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

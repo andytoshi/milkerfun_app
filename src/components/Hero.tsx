@@ -33,7 +33,7 @@ export const Hero: React.FC = () => {
           <p className="text-xl sm:text-2xl lg:text-3xl text-white/90 max-w-4xl mx-auto leading-relaxed text-shadow">
             We reimagined DeFi on Solana. Every crash = more cash.
             <br className="hidden sm:block" />
-           The mooooost profitable idle farming game on Solana!
+            Revolutionary yield farming protocol.
           </p>
         </div>
 
@@ -83,11 +83,11 @@ export const Hero: React.FC = () => {
             Trade MILK
           </a>
           <Link 
-            to="/game"
+            to="/farming-hub"
             className="btn-warning flex items-center gap-2 text-lg px-8 py-4"
           >
-            <span>🎮</span>
-            Start Playing
+            <span>🚜</span>
+            Start Farming
           </Link>
         </div>
 

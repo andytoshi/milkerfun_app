@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useGameData } from '../hooks/useGameData';
 import { useSolanaTransactions } from '../hooks/useSolanaTransactions';
-import { Recycle, AlertTriangle, Plus, Minus } from 'lucide-react';
+import { Recycle, AlertTriangle, Plus, Minus, HelpCircle } from 'lucide-react';
 import { formatNumber } from '../utils/format';
 
 export const CompoundCows: React.FC = () => {
@@ -20,14 +20,6 @@ export const CompoundCows: React.FC = () => {
   const maxAffordableCows = Math.floor(totalRewards / cowPrice);
   const canAfford = totalRewards >= totalCost && numCows <= maxAffordableCows;
 
-  console.log('CompoundCows debug:', {
-    totalRewards,
-    cowPrice,
-    totalCost,
-    maxAffordableCows,
-    canAfford,
-    numCows
-  });
   const handleCompound = async () => {
     if (!publicKey || !canAfford) return;
     
@@ -70,46 +62,48 @@ export const CompoundCows: React.FC = () => {
 
   if (!publicKey) {
     return (
-      <div className="card p-6 lg:p-8">
-        <div className="card-header">
-          <Recycle className="text-purple-600" size={32} />
-          <h3 className="text-xl font-bold text-gray-800">🔄 Compound Cows</h3>
+      <div className="glass-card p-6 lg:p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Recycle className="text-white" size={32} />
+          </div>
+          <h3 className="text-xl font-bold text-white mb-4">🔄 Compound Cows</h3>
+          <p className="text-white/70">Connect your wallet to compound rewards!</p>
         </div>
-        <p className="text-gray-600">Connect your wallet to compound rewards!</p>
       </div>
     );
   }
 
   return (
-    <div className="card p-6 lg:p-8">
-      <div className="card-header">
-        <Recycle className="text-purple-600" size={32} />
-        <h3 className="text-xl font-bold text-gray-800">🔄 Compound Cows</h3>
+    <div className="glass-card p-6 lg:p-8">
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+          <Recycle className="text-white" size={24} />
+        </div>
+        <h3 className="text-xl font-bold text-white">🔄 Compound Cows</h3>
         <div className="ml-auto">
-          <div className="group relative">
-            <button className="text-gray-400 hover:text-gray-600">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
-              </svg>
+          <div className="group/tooltip relative">
+            <button className="text-white/60 hover:text-white/80 transition-colors">
+              <HelpCircle size={20} />
             </button>
-            <div className="absolute right-0 top-8 w-64 bg-gray-800 text-white text-sm rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-10">
-              Use your earned MILK to buy more cows without spending from your wallet!
+            <div className="absolute right-0 top-8 w-64 bg-black/90 text-white text-sm rounded-xl p-3 opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-300 pointer-events-none z-10 backdrop-blur-sm border border-white/20">
+              Use your earned MILK rewards to buy more cows without spending from your wallet! This creates exponential growth.
             </div>
           </div>
         </div>
       </div>
       
       {/* Rewards Display */}
-      <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4 mb-6 border border-green-200 transition-all duration-300">
+      <div className="bg-white/10 rounded-xl p-4 mb-6 border border-white/20 backdrop-blur-sm transition-all duration-300">
         <div className="flex justify-between items-center mb-3">
-          <span className="text-green-700 font-semibold">Available Rewards:</span>
-          <span className="text-2xl font-bold text-success-600 transition-all duration-300">
+          <span className="text-white/80 font-semibold">Available:</span>
+          <span className="text-2xl font-bold text-green-400 transition-all duration-300">
             {formatNumber(totalRewards)} MILK
           </span>
         </div>
         <div className="flex justify-between items-center text-sm">
-          <span className="text-green-600">Max Cows You Can Buy:</span>
-          <span className="font-bold text-gray-800 transition-all duration-300">{formatNumber(maxAffordableCows)}</span>
+          <span className="text-white/70">Max Cows You Can Buy:</span>
+          <span className="font-bold text-white transition-all duration-300">{formatNumber(maxAffordableCows)}</span>
         </div>
       </div>
 
@@ -117,14 +111,14 @@ export const CompoundCows: React.FC = () => {
         <div className="space-y-6">
           {/* Cow Input */}
           <div>
-            <label htmlFor="compoundCows" className="block text-sm font-semibold text-gray-700 mb-3">
+            <label htmlFor="compoundCows" className="block text-sm font-semibold text-white/90 mb-3">
               Number of Cows to Compound:
             </label>
             <div className="flex items-center gap-3 mb-3">
               <button 
                 onClick={() => setNumCows(Math.max(1, numCows - 1))}
                 disabled={numCows <= 1}
-                className="w-10 h-10 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-xl font-bold transition-colors flex items-center justify-center"
+                className="w-12 h-12 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/30 text-white rounded-xl font-bold transition-all duration-300 flex items-center justify-center backdrop-blur-sm border border-white/20"
               >
                 <Minus size={20} />
               </button>
@@ -138,12 +132,12 @@ export const CompoundCows: React.FC = () => {
                   const value = Math.max(1, Math.min(maxAffordableCows, parseInt(e.target.value) || 1));
                   setNumCows(value);
                 }}
-                className="input-field text-center font-bold text-lg w-24"
+                className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 text-center font-bold text-lg backdrop-blur-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
               />
               <button 
                 onClick={() => setNumCows(Math.min(maxAffordableCows, numCows + 1))}
                 disabled={numCows >= maxAffordableCows}
-                className="w-10 h-10 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-xl font-bold transition-colors flex items-center justify-center"
+                className="w-12 h-12 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/30 text-white rounded-xl font-bold transition-all duration-300 flex items-center justify-center backdrop-blur-sm border border-white/20"
               >
                 <Plus size={20} />
               </button>
@@ -151,25 +145,25 @@ export const CompoundCows: React.FC = () => {
             <button
               onClick={() => setNumCows(maxAffordableCows)}
               disabled={maxAffordableCows === 0}
-              className="btn-secondary text-sm py-2 px-4"
+              className="bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/30 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-300 text-sm backdrop-blur-sm border border-white/20"
             >
-              MAX
+              MAX ({formatNumber(maxAffordableCows)})
             </button>
           </div>
 
           {/* Cost Summary */}
-          <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+          <div className="bg-white/10 rounded-xl p-4 space-y-3 border border-white/20 backdrop-blur-sm">
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">
+              <span className="font-medium text-white/80">
                 Cost for {numCows} cow{numCows !== 1 ? 's' : ''}:
               </span>
-              <span className="text-xl font-bold text-gray-800">
+              <span className="text-lg font-bold text-white">
                 {formatNumber(totalCost)} MILK
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="font-medium text-gray-700">Remaining Rewards:</span>
-              <span className="text-xl font-bold text-success-600">
+              <span className="font-medium text-white/80">Remaining:</span>
+              <span className="text-lg font-bold text-green-400">
                 {formatNumber(Math.max(0, totalRewards - totalCost))} MILK
               </span>
             </div>
@@ -177,10 +171,10 @@ export const CompoundCows: React.FC = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="bg-error-50 border border-error-200 rounded-xl p-4">
+            <div className="bg-red-500/20 border border-red-400/30 rounded-xl p-4 backdrop-blur-sm">
               <div className="flex items-center gap-3">
-                <AlertTriangle className="text-error-600 flex-shrink-0" size={20} />
-                <p className="text-error-700 font-medium">{error}</p>
+                <AlertTriangle className="text-red-400 flex-shrink-0" size={20} />
+                <p className="text-red-300 font-medium">{error}</p>
               </div>
             </div>
           )}
@@ -192,7 +186,7 @@ export const CompoundCows: React.FC = () => {
             className={`w-full flex items-center justify-center gap-3 py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 ${
               canAfford && !loading && maxAffordableCows > 0
                 ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transform hover:scale-105 shadow-lg hover:shadow-xl'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-white/10 text-white/50 cursor-not-allowed backdrop-blur-sm border border-white/20'
             }`}
           >
             {loading ? (
@@ -207,12 +201,37 @@ export const CompoundCows: React.FC = () => {
               </>
             )}
           </button>
+
+          {/* Compound Benefits */}
+          <div className="bg-white/5 rounded-xl p-4 border border-white/10 backdrop-blur-sm">
+            <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+              <span className="text-lg">📈</span>
+              Compound Benefits
+            </h4>
+            <ul className="space-y-2 text-white/70 text-sm">
+              <li className="flex items-center gap-2">
+                <span className="text-green-400">•</span>
+                <span>No wallet MILK required - uses earned rewards</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-400">•</span>
+                <span>Exponential growth through reinvestment</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-green-400">•</span>
+                <span>Higher cow count = higher daily earnings</span>
+              </li>
+            </ul>
+          </div>
         </div>
       ) : (
         <div className="text-center py-8">
-          <div className="text-6xl mb-4 animate-bounce-slow">🐄</div>
-          <p className="text-gray-600 mb-2 font-medium">No rewards available to compound yet.</p>
-          <p className="text-gray-500">Buy some cows first and wait for them to produce MILK!</p>
+          <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-white/20">
+            <span className="text-4xl">🐄</span>
+          </div>
+          <h4 className="text-lg font-bold text-white mb-3">No Rewards Available</h4>
+          <p className="text-white/70 mb-2">No rewards available to compound yet.</p>
+          <p className="text-white/60 text-sm">Buy some cows first and wait for them to produce MILK!</p>
         </div>
       )}
     </div>

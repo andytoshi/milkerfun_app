@@ -447,10 +447,10 @@ export const AboutPage: React.FC = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link 
-                to="/game"
+                to="/farming-hub"
                 className="btn-primary text-lg px-8 py-4"
               >
-                🎮 Start Farming
+                🚜 Start Farming
               </Link>
               <Link 
                 to="/stats"

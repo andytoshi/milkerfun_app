@@ -4,7 +4,7 @@ import { Transaction, TransactionInstruction, SystemProgram } from '@solana/web3
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { useNetwork } from './useNetwork';
 import { 
-  createWithdrawMilkInstruction,
+  createWithdrawMilkInstruction, 
   ensureTokenAccount,
   findProgramAddresses,
   BUY_COWS_DISCRIMINATOR

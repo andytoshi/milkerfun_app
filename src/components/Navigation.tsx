@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { NetworkSwitcher } from './NetworkSwitcher';
-import { Home, BarChart3, Gamepad2, Menu, X, Info } from 'lucide-react';
+import { Home, BarChart3, Tractor, Menu, X, Info } from 'lucide-react';
 
 export const Navigation: React.FC = () => {
   const location = useLocation();
@@ -51,15 +51,15 @@ export const Navigation: React.FC = () => {
               <span>Home</span>
             </Link>
             <Link 
-              to="/game" 
+              to="/farming-hub" 
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold transition-all duration-300 ${
-                isActive('/game') 
+                isActive('/farming-hub') 
                   ? 'bg-white/20 text-white shadow-lg' 
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
             >
-              <Gamepad2 size={20} />
-              <span>Game</span>
+              <Tractor size={20} />
+              <span>Farming Hub</span>
             </Link>
             <Link 
               to="/stats" 
@@ -124,16 +124,16 @@ export const Navigation: React.FC = () => {
               <span>Home</span>
             </Link>
             <Link 
-              to="/game" 
+              to="/farming-hub" 
               className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                isActive('/game') 
+                isActive('/farming-hub') 
                   ? 'bg-white/20 text-white' 
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               }`}
               onClick={closeMobileMenu}
             >
-              <Gamepad2 size={20} />
-              <span>Game</span>
+              <Tractor size={20} />
+              <span>Farming Hub</span>
             </Link>
             <Link 
               to="/stats" 
