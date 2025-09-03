@@ -4,6 +4,7 @@ import { useGameData } from '../hooks/useGameData';
 import { useSolanaTransactions } from '../hooks/useSolanaTransactions';
 import { ShoppingCart, AlertTriangle, Plus, Minus, TrendingUp } from 'lucide-react';
 import { formatNumber } from '../utils/format';
+import { GAME_CONFIG } from '../constants/solana';
 
 export const BuyCows: React.FC = () => {
   const { publicKey } = useWallet();
@@ -16,7 +17,10 @@ export const BuyCows: React.FC = () => {
 
   const totalCost = (gameStats?.currentCowPrice || 0) * numCows;
   const canAfford = (userStats?.milkBalance || 0) >= totalCost;
-  const maxAffordableCows = Math.floor((userStats?.milkBalance || 0) / (gameStats?.currentCowPrice || 1));
+  const maxAffordableCows = Math.min(
+    Math.floor((userStats?.milkBalance || 0) / (gameStats?.currentCowPrice || 1)),
+    GAME_CONFIG.MAX_COWS_PER_TRANSACTION
+  );
 
   const handleBuyCows = async () => {
     if (!publicKey || !canAfford) return;
@@ -90,12 +94,19 @@ export const BuyCows: React.FC = () => {
           </span>
         </div>
         
-        {(gameStats?.hoursElapsed || 0) < 120 && (gameStats?.greedMultiplier || 1) > 2 && (
+        {(gameStats?.hoursElapsed || 0) < 168 && (gameStats?.greedMultiplier || 1) > 2 && (
           <div className="flex items-center gap-2 text-yellow-400 text-sm font-medium">
             <TrendingUp size={16} />
             <span>Early adopter bonus active! Greed multiplier: {gameStats?.greedMultiplier ? `${gameStats.greedMultiplier.toFixed(2)}x` : '6.00x'}</span>
           </div>
         )}
+        
+        <div className="mt-3 text-center">
+          <div className="inline-flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1 text-sm text-white/80">
+            <span>⚠️</span>
+            <span>Max {GAME_CONFIG.MAX_COWS_PER_TRANSACTION} cows per transaction</span>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -116,17 +127,17 @@ export const BuyCows: React.FC = () => {
               id="buyCows"
               type="number"
               min="1"
-              max={maxAffordableCows}
+              max={Math.min(maxAffordableCows, GAME_CONFIG.MAX_COWS_PER_TRANSACTION)}
               value={numCows}
               onChange={(e) => {
-                const value = Math.max(1, Math.min(maxAffordableCows, parseInt(e.target.value) || 1));
+                const value = Math.max(1, Math.min(maxAffordableCows, GAME_CONFIG.MAX_COWS_PER_TRANSACTION, parseInt(e.target.value) || 1));
                 setNumCows(value);
               }}
               className="flex-1 px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/50 text-center font-bold text-lg backdrop-blur-sm focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
             />
             <button 
-              onClick={() => setNumCows(Math.min(maxAffordableCows, numCows + 1))}
-              disabled={numCows >= maxAffordableCows}
+              onClick={() => setNumCows(Math.min(maxAffordableCows, GAME_CONFIG.MAX_COWS_PER_TRANSACTION, numCows + 1))}
+              disabled={numCows >= maxAffordableCows || numCows >= GAME_CONFIG.MAX_COWS_PER_TRANSACTION}
               className="w-12 h-12 bg-white/20 hover:bg-white/30 disabled:bg-white/10 disabled:text-white/30 text-white rounded-xl font-bold transition-all duration-300 flex items-center justify-center backdrop-blur-sm border border-white/20"
             >
               <Plus size={20} />
@@ -139,6 +150,12 @@ export const BuyCows: React.FC = () => {
           >
             MAX ({formatNumber(maxAffordableCows)})
           </button>
+          
+          {maxAffordableCows > GAME_CONFIG.MAX_COWS_PER_TRANSACTION && (
+            <div className="mt-2 text-sm text-yellow-400 bg-yellow-500/20 rounded-lg p-2 border border-yellow-400/30">
+              <span>💡 You can afford more, but transactions are limited to {GAME_CONFIG.MAX_COWS_PER_TRANSACTION} cows for anti-whale protection</span>
+            </div>
+          )}
         </div>
 
         {/* Cost Summary */}

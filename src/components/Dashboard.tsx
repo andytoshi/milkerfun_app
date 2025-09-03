@@ -211,7 +211,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Protocol Warnings/Info */}
-      {(gameStats?.greedMultiplier || 1) > 2 && (
+      {(gameStats?.greedMultiplier || 1) > 2.5 && (
         <div className="glass-card p-6 md:p-8 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 border-yellow-400/30">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0">
@@ -228,7 +228,7 @@ export const Dashboard: React.FC = () => {
               </p>
               <div className="bg-white/10 rounded-xl p-4">
                 <div className="text-sm text-white/70 mb-2">Greed Multiplier Formula:</div>
-                <div className="font-mono text-yellow-400 text-lg font-bold">G(C) = 1 + 5 × e^(-C/250)</div>
+                <div className="font-mono text-yellow-400 text-lg font-bold">G(C) = 1 + 8 × e^(-C/1500)</div>
               </div>
             </div>
           </div>

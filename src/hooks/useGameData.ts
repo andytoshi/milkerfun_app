@@ -109,7 +109,7 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
         hoursElapsed: 0,
         halvingPeriod: 0,
         priceMultiplier: 1.0,
-        greedMultiplier: 6.0, // Maximum greed multiplier for 0 cows
+        greedMultiplier: 9.0, // Maximum greed multiplier for 0 cows
       };
       
       setGameStats(defaultGameStats);

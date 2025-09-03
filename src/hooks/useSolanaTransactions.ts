@@ -9,6 +9,7 @@ import {
   findProgramAddresses,
   BUY_COWS_DISCRIMINATOR
 } from '../utils/program';
+import { GAME_CONFIG } from '../constants/solana';
 
 export const useSolanaTransactions = () => {
   const { connection } = useConnection();
@@ -20,6 +21,10 @@ export const useSolanaTransactions = () => {
       throw new Error('Wallet not connected');
     }
 
+    // Validate cow count limit
+    if (numCows > GAME_CONFIG.MAX_COWS_PER_TRANSACTION) {
+      throw new Error(`Cannot buy more than ${GAME_CONFIG.MAX_COWS_PER_TRANSACTION} cows per transaction`);
+    }
     let signature: string | undefined;
 
     try {

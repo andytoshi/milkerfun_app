@@ -110,14 +110,14 @@ export const GameStats: React.FC<GameStatsProps> = ({
   }
 
   // Generate chart data
-  const priceData = Array.from({ length: 51 }, (_, index) => {
-    const globalCows = index * 100; // 0, 100, 200, ... 5000 cows
+  const priceData = Array.from({ length: 61 }, (_, index) => {
+    const globalCows = index * 167; // 0, 167, 334, ... ~10,000 cows
     const price = calculateDynamicCowPrice(globalCows);
     return { cows: globalCows, price: price };
   });
 
-  const rewardData = Array.from({ length: 51 }, (_, index) => {
-    const globalCows = index * 100;
+  const rewardData = Array.from({ length: 61 }, (_, index) => {
+    const globalCows = index * 167;
     const tvl = globalStats?.tvl || 50000000 * 1_000_000;
     const rewardRate = calculateDynamicRewardRate(globalCows, tvl);
     const greedMultiplier = calculateGreedMultiplier(globalCows);
@@ -685,14 +685,14 @@ export const GameStats: React.FC<GameStatsProps> = ({
             <h4 className="text-lg font-bold text-purple-400 mb-4 text-center">Dynamic Pricing</h4>
             <div className="bg-black/30 rounded-lg p-4 mb-4">
               <div className="text-center font-mono text-white text-lg font-bold">
-                P(c) = 6,000 × (1 + (c/1,000)¹·⁰)
+                P(c) = 6,000 × (1 + (c/3,000)¹·⁵)
               </div>
             </div>
             <div className="space-y-2 text-sm text-white/70">
               <div><strong className="text-white">P₀:</strong> Base price (6,000 MILK)</div>
               <div><strong className="text-white">c:</strong> Global cow count</div>
-              <div><strong className="text-white">C_pivot:</strong> Pivot point (1,000)</div>
-              <div><strong className="text-white">α:</strong> Steepness (1.0)</div>
+              <div><strong className="text-white">C_pivot:</strong> Pivot point (3,000)</div>
+              <div><strong className="text-white">α:</strong> Steepness (1.5)</div>
             </div>
           </div>
 
@@ -700,12 +700,12 @@ export const GameStats: React.FC<GameStatsProps> = ({
             <h4 className="text-lg font-bold text-green-400 mb-4 text-center">Reward Distribution</h4>
             <div className="bg-black/30 rounded-lg p-4 mb-4">
               <div className="text-center font-mono text-white text-sm font-bold leading-relaxed">
-                R = max(B / (1 + α × (TVL/C) / S), R_min) × G(C)
+                R = max(25k / (1 + 0.5 × (TVL/C) / 50k), 1k) × G(C)
               </div>
             </div>
             <div className="space-y-2 text-sm text-white/70">
-              <div><strong className="text-white">B:</strong> Base reward (150k MILK)</div>
-              <div><strong className="text-white">α:</strong> Sensitivity (0.8)</div>
+              <div><strong className="text-white">B:</strong> Base reward (25k MILK)</div>
+              <div><strong className="text-white">α:</strong> Sensitivity (0.5)</div>
               <div><strong className="text-white">S:</strong> Normalization (50k)</div>
               <div><strong className="text-white">G(C):</strong> Greed function</div>
             </div>
@@ -715,14 +715,14 @@ export const GameStats: React.FC<GameStatsProps> = ({
             <h4 className="text-lg font-bold text-yellow-400 mb-4 text-center">Greed Multiplier</h4>
             <div className="bg-black/30 rounded-lg p-4 mb-4">
               <div className="text-center font-mono text-white text-lg font-bold">
-                G(C) = 1 + 5 × e^(-C/250)
+                G(C) = 1 + 8 × e^(-C/1500)
               </div>
             </div>
             <div className="space-y-2 text-sm text-white/70">
-              <div><strong className="text-white">β:</strong> Multiplier (5.0)</div>
-              <div><strong className="text-white">C₀:</strong> Decay pivot (250)</div>
-              <div><strong className="text-white">Range:</strong> 6x → 1x</div>
-              <div><strong className="text-white">Current:</strong> {gameStats?.greedMultiplier?.toFixed(2) || '6.00'}x</div>
+              <div><strong className="text-white">β:</strong> Multiplier (8.0)</div>
+              <div><strong className="text-white">C₀:</strong> Decay pivot (1,500)</div>
+              <div><strong className="text-white">Range:</strong> 9x → 1x</div>
+              <div><strong className="text-white">Current:</strong> {gameStats?.greedMultiplier?.toFixed(2) || '9.00'}x</div>
             </div>
           </div>
         </div>
@@ -755,7 +755,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
             </div>
             <div className="text-center">
               <div className="text-2xl md:text-3xl font-bold text-yellow-400 mb-1">
-                {gameStats?.greedMultiplier?.toFixed(2) || '6.00'}x
+                {gameStats?.greedMultiplier?.toFixed(2) || '9.00'}x
               </div>
               <div className="text-white/60 text-sm font-medium">Greed Bonus</div>
             </div>

@@ -168,6 +168,10 @@ export const FarmingHubPage: React.FC = () => {
                   <span className="text-red-400">•</span>
                   <span>Market stability protection</span>
                 </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-red-400">•</span>
+                  <span>Max 50 cows per transaction</span>
+                </li>
               </ul>
             </div>
 

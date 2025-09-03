@@ -77,7 +77,7 @@ export const AboutPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="bg-white rounded-lg p-4">
                   <div className="text-center font-mono text-lg font-bold text-purple-600 mb-2">
-                    P(c) = 6,000 × (1 + (c/1,000)^1.0)
+                    P(c) = 6,000 × (1 + (c/3,000)^1.5)
                   </div>
                   <p className="text-sm text-gray-600 text-center">
                     Exponential bonding curve prevents infinite supply
@@ -86,8 +86,8 @@ export const AboutPage: React.FC = () => {
                 <ul className="space-y-2 text-sm text-purple-700">
                   <li><strong>P₀:</strong> Base price (6,000 MILK)</li>
                   <li><strong>c:</strong> Global cow count</li>
-                  <li><strong>C_pivot:</strong> Pivot point (1,000 cows)</li>
-                  <li><strong>α:</strong> Steepness factor (1.0)</li>
+                  <li><strong>C_pivot:</strong> Pivot point (3,000 cows)</li>
+                  <li><strong>α:</strong> Steepness factor (1.5)</li>
                 </ul>
               </div>
             </div>
@@ -97,15 +97,15 @@ export const AboutPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="bg-white rounded-lg p-4">
                   <div className="text-center font-mono text-sm font-bold text-green-600 mb-2">
-                    R = max(B / (1 + α × (TVL/C) / S), R_min) × G(C)
+                    R = max(25k / (1 + 0.5 × (TVL/C) / 50k), 1k) × G(C)
                   </div>
                   <p className="text-sm text-gray-600 text-center">
                     TVL-responsive rewards with greed multiplier
                   </p>
                 </div>
                 <ul className="space-y-2 text-sm text-green-700">
-                  <li><strong>B:</strong> Base reward (150,000 MILK)</li>
-                  <li><strong>α:</strong> Sensitivity (0.8)</li>
+                  <li><strong>B:</strong> Base reward (25,000 MILK)</li>
+                  <li><strong>α:</strong> Sensitivity (0.5)</li>
                   <li><strong>S:</strong> Normalization (50,000 MILK)</li>
                   <li><strong>G(C):</strong> Greed multiplier function</li>
                 </ul>
@@ -117,10 +117,10 @@ export const AboutPage: React.FC = () => {
             <h3 className="text-xl font-bold text-blue-800 mb-4 text-center">🚀 Greed Multiplier Function</h3>
             <div className="bg-white rounded-lg p-4 text-center">
               <div className="font-mono text-lg font-bold text-blue-600 mb-2">
-                G(C) = 1 + 5 × e^(-C/250)
+                G(C) = 1 + 8 × e^(-C/1500)
               </div>
               <p className="text-sm text-gray-600">
-                Early adopter bonus: starts at 6x, exponentially decays to 1x as ecosystem grows
+                Early adopter bonus: starts at 9x, exponentially decays to 1x as ecosystem grows
               </p>
             </div>
           </div>
