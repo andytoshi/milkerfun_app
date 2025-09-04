@@ -118,7 +118,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
 
   const rewardData = Array.from({ length: 61 }, (_, index) => {
     const globalCows = index * 167;
-    const tvl = globalStats?.tvl || 50000000 * 1_000_000;
+    const tvl = globalStats?.tvl || 100000000 * 1_000_000;
     const rewardRate = calculateDynamicRewardRate(globalCows, tvl);
     const greedMultiplier = calculateGreedMultiplier(globalCows);
     return {
@@ -685,14 +685,14 @@ export const GameStats: React.FC<GameStatsProps> = ({
             <h4 className="text-lg font-bold text-purple-400 mb-4 text-center">Dynamic Pricing</h4>
             <div className="bg-black/30 rounded-lg p-4 mb-4">
               <div className="text-center font-mono text-white text-lg font-bold">
-                P(c) = 6,000 × (1 + (c/3,000)¹·⁵)
+                P(c) = 6,000 × (1 + (c/3,000)²·⁰)
               </div>
             </div>
             <div className="space-y-2 text-sm text-white/70">
               <div><strong className="text-white">P₀:</strong> Base price (6,000 MILK)</div>
               <div><strong className="text-white">c:</strong> Global cow count</div>
               <div><strong className="text-white">C_pivot:</strong> Pivot point (3,000)</div>
-              <div><strong className="text-white">α:</strong> Steepness (1.5)</div>
+              <div><strong className="text-white">α:</strong> Steepness (2.0)</div>
             </div>
           </div>
 
@@ -700,13 +700,13 @@ export const GameStats: React.FC<GameStatsProps> = ({
             <h4 className="text-lg font-bold text-green-400 mb-4 text-center">Reward Distribution</h4>
             <div className="bg-black/30 rounded-lg p-4 mb-4">
               <div className="text-center font-mono text-white text-sm font-bold leading-relaxed">
-                R = max(25k / (1 + 0.5 × (TVL/C) / 50k), 1k) × G(C)
+                R = max(25k / (1 + 0.5 × (TVL/C) / 100k), 1k) × G(C)
               </div>
             </div>
             <div className="space-y-2 text-sm text-white/70">
               <div><strong className="text-white">B:</strong> Base reward (25k MILK)</div>
               <div><strong className="text-white">α:</strong> Sensitivity (0.5)</div>
-              <div><strong className="text-white">S:</strong> Normalization (50k)</div>
+              <div><strong className="text-white">S:</strong> Normalization (100k)</div>
               <div><strong className="text-white">G(C):</strong> Greed function</div>
             </div>
           </div>
