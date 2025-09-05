@@ -13,7 +13,7 @@ export const NETWORKS = {
   },
   mainnet: {
     name: 'Mainnet',
-    rpcUrl: 'https://patient-morning-forest.solana-mainnet.quiknode.pro/e5360c42c26cc7972c3921a997078c86e3e723c2/',
+    rpcUrl: 'https://necessary-frosty-mansion.solana-mainnet.quiknode.pro/876c6f89b2ae0e4d6c5fe31fe64c710cb609f6f0/',
     programId: new PublicKey('11111111111111111111111111111111'),
     milkMint: new PublicKey('11111111111111111111111111111111'),
     configPda: new PublicKey('11111111111111111111111111111111'),
