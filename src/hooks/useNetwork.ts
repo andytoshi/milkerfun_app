@@ -1,15 +1,31 @@
 import { useState, useCallback, useEffect } from 'react';
-import { NETWORKS } from '../constants/solana';
+import { NETWORKS, getDefaultNetwork, getAvailableNetworks } from '../constants/solana';
 import type { NetworkType } from '../constants/solana';
 
 export const useNetwork = () => {
   const [currentNetwork, setCurrentNetwork] = useState<NetworkType>(() => {
     // Try to get saved network from localStorage
     const saved = localStorage.getItem('milkerfun-network');
-    return (saved as NetworkType) || 'devnet';
+    const savedNetwork = saved as NetworkType;
+    
+    // Check if saved network is available
+    const availableNetworks = getAvailableNetworks();
+    if (savedNetwork && availableNetworks.includes(savedNetwork)) {
+      return savedNetwork;
+    }
+    
+    // Return default network based on configuration
+    return getDefaultNetwork();
   });
 
   const switchNetwork = useCallback((network: NetworkType) => {
+    // Only allow switching to available networks
+    const availableNetworks = getAvailableNetworks();
+    if (!availableNetworks.includes(network)) {
+      console.warn(`Network ${network} is not available`);
+      return;
+    }
+    
     setCurrentNetwork(network);
     localStorage.setItem('milkerfun-network', network);
     
@@ -30,6 +46,7 @@ export const useNetwork = () => {
   return {
     currentNetwork,
     networkConfig,
+    availableNetworks: getAvailableNetworks(),
     switchNetwork,
     isMainnet: currentNetwork === 'mainnet',
     isDevnet: currentNetwork === 'devnet',

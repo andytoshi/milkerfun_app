@@ -93,7 +93,6 @@ export const Navigation: React.FC = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-3">
-            <NetworkSwitcher />
             <button 
               onClick={toggleMobileMenu}
               className="text-white p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -160,8 +159,11 @@ export const Navigation: React.FC = () => {
               <span>About</span>
             </Link>
             
-            {/* Mobile Wallet Button */}
+            {/* Mobile Controls */}
             <div className="pt-4 border-t border-white/20">
+              <div className="mb-3">
+                <NetworkSwitcher />
+              </div>
               <WalletMultiButton />
             </div>
           </div>

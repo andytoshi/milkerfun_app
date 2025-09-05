@@ -25,6 +25,25 @@ export const NETWORKS = {
 
 export type NetworkType = keyof typeof NETWORKS;
 
+// Check if mainnet is properly configured (not placeholder)
+export const isMainnetConfigured = (): boolean => {
+  return NETWORKS.mainnet.programId.toString() !== '11111111111111111111111111111111';
+};
+
+export const isMainnetMilkConfigured = (): boolean => {
+  return NETWORKS.mainnet.milkMint.toString() !== '11111111111111111111111111111111';
+};
+
+// Get default network based on mainnet configuration
+export const getDefaultNetwork = (): NetworkType => {
+  return (isMainnetConfigured() && isMainnetMilkConfigured()) ? 'mainnet' : 'devnet';
+};
+
+// Get available networks based on configuration
+export const getAvailableNetworks = (): NetworkType[] => {
+  return (isMainnetConfigured() && isMainnetMilkConfigured()) ? ['mainnet', 'devnet'] : ['devnet'];
+};
+
 export const GAME_CONFIG = {
   // Economic constants matching smart contract
   COW_BASE_PRICE: 6000, // 6,000 MILK base price

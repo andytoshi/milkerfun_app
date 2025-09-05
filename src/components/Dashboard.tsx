@@ -3,12 +3,13 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useGameData } from '../hooks/useGameData';
 import { useNetwork } from '../hooks/useNetwork';
+import { isMainnetConfigured } from '../constants/solana';
 import { Milk, TrendingUp, ExternalLink, User, Shield, Activity } from 'lucide-react';
 import { formatNumber, formatTime, shortenAddress } from '../utils/format';
 
 export const Dashboard: React.FC = () => {
   const { publicKey } = useWallet();
-  const { networkConfig, currentNetwork } = useNetwork();
+  const { networkConfig } = useNetwork();
   const { userStats, gameStats, loading } = useGameData(publicKey?.toString(), true);
 
   // Calculate withdrawal penalty status
@@ -34,6 +35,24 @@ export const Dashboard: React.FC = () => {
 
   const withdrawalStatus = getWithdrawalStatus();
 
+  // Get network status info
+  const getNetworkStatusInfo = () => {
+    if (networkConfig.name === 'Mainnet' && isMainnetConfigured()) {
+      return {
+        color: 'bg-green-100 text-green-800',
+        dotColor: 'bg-green-500',
+        label: 'Mainnet - Live'
+      };
+    } else {
+      return {
+        color: 'bg-yellow-100 text-yellow-800',
+        dotColor: 'bg-yellow-500',
+        label: 'Devnet - Testing'
+      };
+    }
+  };
+
+  const networkStatus = getNetworkStatusInfo();
   if (!publicKey) {
     return (
       <div className="glass-card p-8 md:p-12 lg:p-16 text-center">
@@ -87,7 +106,7 @@ export const Dashboard: React.FC = () => {
                   {shortenAddress(publicKey.toString())}
                 </span>
                 <a 
-                  href={`${networkConfig.explorerUrl}/address/${publicKey.toString()}?cluster=${currentNetwork}`}
+                  href={`${networkConfig.explorerUrl}/address/${publicKey.toString()}?cluster=${networkConfig.name.toLowerCase()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-purple-400 hover:text-purple-300 transition-colors"
@@ -99,14 +118,10 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <span className={`stat-badge ${
-              currentNetwork === 'mainnet' 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-yellow-100 text-yellow-800'
+              networkStatus.color
             }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                currentNetwork === 'mainnet' ? 'bg-green-500' : 'bg-yellow-500'
-              }`} />
-              {networkConfig.name}
+              <div className={`w-2 h-2 rounded-full ${networkStatus.dotColor}`} />
+              {networkStatus.label}
             </span>
           </div>
         </div>

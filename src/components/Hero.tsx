@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useNetwork } from '../hooks/useNetwork';
-import { SOCIAL_LINKS } from '../constants/solana';
+import { SOCIAL_LINKS, isMainnetConfigured, NETWORKS } from '../constants/solana';
 import { ExternalLink, Github, Twitter, TrendingUp, Shield, Zap, Copy } from 'lucide-react';
 
 export const Hero: React.FC = () => {
@@ -11,6 +11,12 @@ export const Hero: React.FC = () => {
     navigator.clipboard.writeText(text);
   };
 
+  // Get mainnet MILK mint address for pump.fun link
+  const mainnetMilkMint = NETWORKS.mainnet.milkMint.toString();
+  const pumpFunLink = `https://pump.fun/coin/${mainnetMilkMint}`;
+
+  // Show Trade MILK button only on mainnet
+  const showTradeMilkButton = currentNetwork === 'mainnet' && isMainnetConfigured();
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Floating Background Elements */}
@@ -36,7 +42,7 @@ export const Hero: React.FC = () => {
             Revolutionary yield farming protocol.
           </p>
         </div>
-
+        
         {/* Features */}
         <div className="flex flex-wrap justify-center gap-4 lg:gap-6 mb-12 lg:mb-16">
           <div className="glass-card px-6 py-4 flex items-center gap-3">
@@ -73,15 +79,17 @@ export const Hero: React.FC = () => {
             <Github size={20} />
             Open Source
           </a>
-          <a 
-            href={SOCIAL_LINKS.tradeMilk} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="btn-success flex items-center gap-2"
-          >
-            <TrendingUp size={20} />
-            Trade MILK
-          </a>
+          {showTradeMilkButton && (
+            <a 
+              href={pumpFunLink} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="btn-success flex items-center gap-2"
+            >
+              <TrendingUp size={20} />
+              Trade MILK
+            </a>
+          )}
           <Link 
             to="/farming-hub"
             className="btn-warning flex items-center gap-2 text-lg px-8 py-4"
@@ -122,7 +130,7 @@ export const Hero: React.FC = () => {
                           <Copy size={16} />
                         </button>
                         <a 
-                          href={`${networkConfig.explorerUrl}/address/${networkConfig.programId.toString()}?cluster=${currentNetwork}`}
+                          href={`${networkConfig.explorerUrl}/address/${networkConfig.programId.toString()}?cluster=${networkConfig.name.toLowerCase()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"
@@ -147,7 +155,7 @@ export const Hero: React.FC = () => {
                           <Copy size={16} />
                         </button>
                         <a 
-                          href={`${networkConfig.explorerUrl}/address/${networkConfig.milkMint.toString()}?cluster=${currentNetwork}`}
+                          href={`${networkConfig.explorerUrl}/address/${networkConfig.milkMint.toString()}?cluster=${networkConfig.name.toLowerCase()}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"

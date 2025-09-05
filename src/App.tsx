@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AppWalletProvider } from './components/WalletProvider'
 import { Navigation } from './components/Navigation'
+import { MainnetAvailablePopup } from './components/MainnetAvailablePopup'
+import { MainnetConfigPopup } from './components/MainnetConfigPopup'
 import { HomePage } from './pages/HomePage'
 import { FarmingHubPage } from './pages/FarmingHubPage'
 import { StatsPage } from './pages/StatsPage'
@@ -12,6 +14,8 @@ function App() {
       <Router>
         <div className="min-h-screen bg-gradient-to-br from-purple-700 via-blue-600 to-indigo-700">
           <Navigation />
+          <MainnetAvailablePopup />
+          <MainnetConfigPopup />
           <main className="flex-1">
             <Routes>
               <Route path="/" element={<HomePage />} />
