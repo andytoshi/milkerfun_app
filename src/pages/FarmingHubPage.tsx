@@ -4,6 +4,7 @@ import { Dashboard } from '../components/Dashboard';
 import { BuyCows } from '../components/BuyCows';
 import { CompoundCows } from '../components/CompoundCows';
 import { WithdrawMilk } from '../components/WithdrawMilk';
+import { ExportImportCows } from '../components/ExportImportCows';
 
 export const FarmingHubPage: React.FC = () => {
   // This will trigger initial data load when the game page is visited
@@ -75,15 +76,25 @@ export const FarmingHubPage: React.FC = () => {
           </div>
           
           {/* Action Cards Grid */}
-          <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
-            <div className="transform transition-all duration-500 hover:scale-105">
-              <BuyCows />
+          <div className="space-y-6 lg:space-y-8">
+            {/* First Row: Buy, Compound, Withdraw */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              <div className="transform transition-all duration-500 hover:scale-105">
+                <BuyCows />
+              </div>
+              <div className="transform transition-all duration-500 hover:scale-105">
+                <CompoundCows />
+              </div>
+              <div className="transform transition-all duration-500 hover:scale-105">
+                <WithdrawMilk />
+              </div>
             </div>
-            <div className="transform transition-all duration-500 hover:scale-105">
-              <CompoundCows />
-            </div>
-            <div className="transform transition-all duration-500 hover:scale-105">
-              <WithdrawMilk />
+            
+            {/* Second Row: Export/Import */}
+            <div className="flex justify-center">
+              <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl transform transition-all duration-500 hover:scale-105">
+                <ExportImportCows />
+              </div>
             </div>
           </div>
         </div>
@@ -130,6 +141,18 @@ export const FarmingHubPage: React.FC = () => {
               <h4 className="text-lg font-bold text-yellow-400 mb-3">4. Withdraw</h4>
               <p className="text-white/70 text-sm leading-relaxed">
                 Extract your MILK tokens to your wallet (24h cooling period with anti-dump protection).
+              </p>
+            </div>
+          </div>
+
+          {/* Export/Import Section */}
+          <div className="mt-8 pt-8 border-t border-white/20">
+            <div className="bg-white/5 rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all duration-300 group text-center">
+              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">🔄</div>
+              <h4 className="text-lg font-bold text-orange-400 mb-3">5. Export/Import $COW Tokens</h4>
+              <p className="text-white/70 text-sm leading-relaxed max-w-2xl mx-auto">
+                Convert your farm cows to tradeable $COW tokens for DEX trading, or import $COW tokens back to productive farm cows. 
+                Perfect for liquidity provision, trading, and portfolio management.
               </p>
             </div>
           </div>
@@ -198,25 +221,25 @@ export const FarmingHubPage: React.FC = () => {
               </ul>
             </div>
 
-            <div className="bg-white/5 rounded-xl p-6 border border-green-500/30 hover:border-green-400/50 transition-all duration-300">
+            <div className="bg-white/5 rounded-xl p-6 border border-orange-500/30 hover:border-orange-400/50 transition-all duration-300">
               <div className="text-center mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-2xl">⚡</span>
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <span className="text-2xl">🔄</span>
                 </div>
-                <h4 className="text-xl font-bold text-green-400 mb-3">TVL-Responsive Rewards</h4>
+                <h4 className="text-xl font-bold text-orange-400 mb-3">Export/Import System</h4>
               </div>
               <ul className="space-y-2 text-white/70 text-sm">
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Anti-inflationary mechanics</span>
+                  <span className="text-orange-400">•</span>
+                  <span>Convert cows to tradeable tokens</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Sustainable yield rates</span>
+                  <span className="text-orange-400">•</span>
+                  <span>Trade on DEXs and marketplaces</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="text-green-400">•</span>
-                  <span>Greed multiplier decay</span>
+                  <span className="text-orange-400">•</span>
+                  <span>Import back to productive cows</span>
                 </li>
               </ul>
             </div>

@@ -165,6 +165,31 @@ export const Hero: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  <div className="bg-white/5 rounded-xl p-4 border border-white/10">
+                    <span className="block text-white/80 font-semibold mb-2">COW Token:</span>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <code className="bg-black/30 text-yellow-400 px-3 py-2 rounded-lg text-sm font-mono break-all flex-1">
+                        {networkConfig.cowMint.toString()}
+                      </code>
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => copyToClipboard(networkConfig.cowMint.toString())}
+                          className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"
+                        >
+                          <Copy size={16} />
+                        </button>
+                        <a 
+                          href={`${networkConfig.explorerUrl}/address/${networkConfig.cowMint.toString()}?cluster=${networkConfig.name.toLowerCase()}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-white/10 hover:bg-white/20 text-white p-2 rounded-lg transition-colors"
+                        >
+                          <ExternalLink size={16} />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -188,6 +213,10 @@ export const Hero: React.FC = () => {
                     <span className="text-green-400 flex-shrink-0">✅</span>
                     <span><strong>Greed Decay:</strong> Mathematical early adopter incentives</span>
                   </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-green-400 flex-shrink-0">✅</span>
+                    <span><strong>Export/Import System:</strong> Convert cows to tradeable COW tokens</span>
+                  </li>
                 </ul>
               </div>
 
@@ -210,6 +239,10 @@ export const Hero: React.FC = () => {
                   <li className="flex items-start gap-3">
                     <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">4</span>
                     <span><strong>Withdraw:</strong> Extract yield (24h cooling period applies)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold flex-shrink-0">5</span>
+                    <span><strong>Trade:</strong> Export cows to COW tokens for DEX trading</span>
                   </li>
                 </ol>
               </div>

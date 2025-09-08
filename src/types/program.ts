@@ -4,9 +4,11 @@ import { BN } from '@coral-xyz/anchor';
 export interface ConfigAccount {
   admin: PublicKey;
   milkMint: PublicKey;
-  baseMilkPerCowPerMin: BN;
-  cowInitialCost: BN;
+  cowMint: PublicKey;
+  poolTokenAccount: PublicKey;
   startTime: BN;
+  globalCowsCount: BN;
+  initialTvl: BN;
 }
 
 export interface FarmAccount {
@@ -14,6 +16,8 @@ export interface FarmAccount {
   cows: BN;
   lastUpdateTime: BN;
   accumulatedRewards: BN;
+  lastRewardRate: BN;
+  lastWithdrawTime: BN;
 }
 
 export interface GameCalculations {

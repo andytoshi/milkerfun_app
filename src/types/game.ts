@@ -29,6 +29,7 @@ export interface UserStats {
   cows: number;
   accumulatedRewards: number;
   milkBalance: number;
+  cowBalance: number;
   estimatedPendingRewards: number;
   totalRewards: number;
   lastWithdrawTime?: number;

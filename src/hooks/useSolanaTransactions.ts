@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Transaction, TransactionInstruction, SystemProgram } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { Transaction, TransactionInstruction, SystemProgram, PublicKey } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } from '@solana/spl-token';
 import { useNetwork } from './useNetwork';
 import { 
   createWithdrawMilkInstruction, 
+  createExportCowsInstruction,
+  createImportCowsInstruction,
   ensureTokenAccount,
-  findProgramAddresses,
   BUY_COWS_DISCRIMINATOR
 } from '../utils/program';
 import { GAME_CONFIG } from '../constants/solana';
@@ -54,12 +55,17 @@ export const useSolanaTransactions = () => {
       }
 
       // Get PDAs
-      const { configPda, poolAuthorityPda, farmPda } = findProgramAddresses(networkConfig.programId, publicKey);
+      const configPda = networkConfig.configPda;
+      const poolAuthorityPda = networkConfig.poolAuthorityPda;
+      const [farmPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('farm'), publicKey.toBuffer()],
+        networkConfig.programId
+      );
       
       console.log('PDAs:', {
         configPda: configPda.toString(),
         poolAuthorityPda: poolAuthorityPda.toString(),
-        farmPda: farmPda!.toString()
+        farmPda: farmPda.toString()
       });
 
       // Create instruction manually with proper format
@@ -84,7 +90,7 @@ export const useSolanaTransactions = () => {
       const buyCowsInstruction = new TransactionInstruction({
         keys: [
           { pubkey: configPda, isSigner: false, isWritable: true },
-          { pubkey: farmPda!, isSigner: false, isWritable: true },
+          { pubkey: farmPda, isSigner: false, isWritable: true },
           { pubkey: publicKey, isSigner: true, isWritable: true },
           { pubkey: userTokenAccount, isSigner: false, isWritable: true },
           { pubkey: networkConfig.poolTokenAccount, isSigner: false, isWritable: true },
@@ -256,11 +262,15 @@ export const useSolanaTransactions = () => {
       console.log('Starting compound cows transaction...', { numCows, publicKey: publicKey.toString() });
       
       // Get PDAs
-      const { configPda, farmPda } = findProgramAddresses(networkConfig.programId, publicKey);
+      const configPda = networkConfig.configPda;
+      const [farmPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('farm'), publicKey.toBuffer()],
+        networkConfig.programId
+      );
       
       console.log('PDAs for compound:', {
         configPda: configPda.toString(),
-        farmPda: farmPda!.toString(),
+        farmPda: farmPda.toString(),
         poolTokenAccount: networkConfig.poolTokenAccount.toString()
       });
 
@@ -287,7 +297,7 @@ export const useSolanaTransactions = () => {
       const compoundInstruction = new TransactionInstruction({
         keys: [
           { pubkey: configPda, isSigner: false, isWritable: true },
-          { pubkey: farmPda!, isSigner: false, isWritable: true },
+          { pubkey: farmPda, isSigner: false, isWritable: true },
           { pubkey: networkConfig.poolTokenAccount, isSigner: false, isWritable: false },
           { pubkey: publicKey, isSigner: true, isWritable: false },
         ],
@@ -337,9 +347,123 @@ export const useSolanaTransactions = () => {
     }
   }, [connection, publicKey, sendTransaction, networkConfig]);
 
+  const exportCows = useCallback(async (numCows: number) => {
+    if (!publicKey || !sendTransaction) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      console.log('Starting export cows transaction...', { numCows, publicKey: publicKey.toString() });
+      
+      // Ensure user has a COW token account
+      const { tokenAccount: userCowTokenAccount, instruction: createCowTokenAccountIx } = 
+        await ensureTokenAccount(connection, publicKey, networkConfig.cowMint);
+
+      console.log('User COW token account:', userCowTokenAccount.toString());
+
+      // Create export instruction
+      const exportIx = await createExportCowsInstruction(
+        networkConfig.programId,
+        publicKey,
+        networkConfig.cowMint,
+        userCowTokenAccount,
+        networkConfig.poolTokenAccount,
+        numCows
+      );
+
+      console.log('Created export instruction');
+
+      const transaction = new Transaction();
+      
+      // Add create COW token account instruction if needed
+      if (createCowTokenAccountIx) {
+        console.log('Adding create COW token account instruction');
+        transaction.add(createCowTokenAccountIx);
+      }
+      
+      // Add export instruction
+      transaction.add(new TransactionInstruction(exportIx));
+
+      console.log('Sending transaction...');
+
+      // Send transaction
+      const signature = await sendTransaction(transaction, connection, {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      });
+
+      console.log('Transaction sent:', signature);
+
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+      
+      console.log('Transaction confirmed:', signature);
+      return signature;
+    } catch (error) {
+      console.error('Error exporting cows:', error);
+      if (error && typeof error === 'object' && 'logs' in error) {
+        console.error('Transaction logs:', (error as any).logs);
+      }
+      throw error;
+    }
+  }, [connection, publicKey, sendTransaction, networkConfig]);
+
+  const importCows = useCallback(async (numCows: number) => {
+    if (!publicKey || !sendTransaction) {
+      throw new Error('Wallet not connected');
+    }
+
+    try {
+      console.log('Starting import cows transaction...', { numCows, publicKey: publicKey.toString() });
+      
+      // Get user's COW token account
+      const userCowTokenAccount = await getAssociatedTokenAddress(networkConfig.cowMint, publicKey);
+      console.log('User COW token account:', userCowTokenAccount.toString());
+
+      // Create import instruction
+      const importIx = await createImportCowsInstruction(
+        networkConfig.programId,
+        publicKey,
+        networkConfig.cowMint,
+        userCowTokenAccount,
+        networkConfig.poolTokenAccount,
+        numCows
+      );
+
+      console.log('Created import instruction');
+
+      const transaction = new Transaction();
+      transaction.add(new TransactionInstruction(importIx));
+
+      console.log('Sending transaction...');
+
+      // Send transaction
+      const signature = await sendTransaction(transaction, connection, {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+      });
+
+      console.log('Transaction sent:', signature);
+
+      // Wait for confirmation
+      await connection.confirmTransaction(signature, 'confirmed');
+      
+      console.log('Transaction confirmed:', signature);
+      return signature;
+    } catch (error) {
+      console.error('Error importing cows:', error);
+      if (error && typeof error === 'object' && 'logs' in error) {
+        console.error('Transaction logs:', (error as any).logs);
+      }
+      throw error;
+    }
+  }, [connection, publicKey, sendTransaction, networkConfig]);
+
   return {
     buyCows,
     withdrawMilk,
     compoundCows,
+    exportCows,
+    importCows,
   };
 };

@@ -153,7 +153,7 @@ export const WithdrawMilk: React.FC = () => {
             <div className="flex justify-between items-center">
               <span className="font-medium text-white/80">You'll Receive:</span>
               <span className="text-lg font-bold text-green-400">
-                {formatNumber(withdrawalStatus.withdrawableAmount)} MILK
+                {formatNumber(withdrawalStatus.withdrawableAmount)} $MILK
               </span>
             </div>
             {!withdrawalStatus.isPenaltyFree && (

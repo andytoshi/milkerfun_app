@@ -90,7 +90,7 @@ export const BuyCows: React.FC = () => {
         <div className="flex justify-between items-center mb-3">
           <span className="text-white/80 font-semibold">Cow price:</span>
           <span className="text-2xl font-bold text-purple-400 transition-all duration-300">
-            {formatNumber(gameStats?.currentCowPrice || 0)} MILK
+            {formatNumber(gameStats?.currentCowPrice || 0)} $MILK
           </span>
         </div>
         
@@ -165,19 +165,19 @@ export const BuyCows: React.FC = () => {
               Cost for {numCows} cow{numCows !== 1 ? 's' : ''}:
             </span>
             <span className="text-lg font-bold text-white">
-              {formatNumber(totalCost)} MILK
+              {formatNumber(totalCost)} $MILK
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="font-medium text-white/80">Balance:</span>
             <span className={`text-lg font-bold ${canAfford ? 'text-green-400' : 'text-red-400'}`}>
-              {formatNumber(userStats?.milkBalance || 0)} MILK
+              {formatNumber(userStats?.milkBalance || 0)} $MILK
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="font-medium text-white/80">Remaining:</span>
             <span className="text-lg font-bold text-green-400">
-              {formatNumber(Math.max(0, (userStats?.milkBalance || 0) - totalCost))} MILK
+              {formatNumber(Math.max(0, (userStats?.milkBalance || 0) - totalCost))} $MILK
             </span>
           </div>
         </div>
@@ -210,7 +210,7 @@ export const BuyCows: React.FC = () => {
           ) : (
             <>
               <ShoppingCart size={24} />
-              Buy {numCows} Cow{numCows !== 1 ? 's' : ''} for {formatNumber(totalCost)} MILK
+              Buy {numCows} Cow{numCows !== 1 ? 's' : ''} for {formatNumber(totalCost)} $MILK
             </>
           )}
         </button>

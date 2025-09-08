@@ -4,7 +4,6 @@ import { getAccount, getAssociatedTokenAddress } from '@solana/spl-token';
 import { useNetwork } from './useNetwork';
 import { GAME_CONFIG } from '../constants/solana';
 import { 
-  findProgramAddresses, 
   calculateDynamicCowPrice,
   calculateDynamicRewardRate,
   calculateGreedMultiplier,
@@ -34,7 +33,7 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
 
   const fetchGlobalStats = useCallback(async () => {
     try {
-      console.log('Fetching global stats from pool account:', networkConfig.poolTokenAccount.toString());
+      console.log('Fetching global stats from config and pool accounts');
       
       // Get pool token account to read TVL
       const poolAccount = await getAccount(connection, networkConfig.poolTokenAccount, 'confirmed');
@@ -43,16 +42,16 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
       console.log('Pool TVL (raw):', tvl);
       console.log('Pool TVL (MILK):', tvl / 1_000_000);
       
-      // Get config account to read global cows count
-      const { configPda } = findProgramAddresses(networkConfig.programId);
+      // Get config account to read global cows count using the pre-calculated PDA
+      const configPda = networkConfig.configPda;
       const configAccountInfo = await connection.getAccountInfo(configPda, 'confirmed');
       
       let globalCows = 0;
       if (configAccountInfo && configAccountInfo.data.length > 0) {
-        // Parse config account data to get global_cows_count
-        // Config structure: discriminator(8) + admin(32) + milk_mint(32) + pool_token_account(32) + start_time(8) + global_cows_count(8) + initial_tvl(8)
+        // Parse config account data to get global_cows_count  
+        // Config structure: discriminator(8) + admin(32) + milk_mint(32) + cow_mint(32) + pool_token_account(32) + start_time(8) + global_cows_count(8) + initial_tvl(8)
         const dataView = new DataView(configAccountInfo.data.buffer);
-        globalCows = Number(dataView.getBigUint64(8 + 32 + 32 + 32 + 8, true)); // global_cows_count at offset 112
+        globalCows = Number(dataView.getBigUint64(8 + 32 + 32 + 32 + 32 + 8, true)); // global_cows_count at offset 144
         console.log('Global cows from config:', globalCows);
       } else {
         console.warn('Config account not found or empty, using default');
@@ -123,16 +122,16 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
       const stats = await fetchGlobalStats();
       
       // Get real config data from blockchain
-      const { configPda } = findProgramAddresses(networkConfig.programId);
+      const configPda = networkConfig.configPda;
       const configAccountInfo = await connection.getAccountInfo(configPda, 'confirmed');
       
       let realStartTime = Math.floor(Date.now() / 1000) - (7 * 24 * 3600); // fallback
       
       if (configAccountInfo && configAccountInfo.data.length > 0) {
-        // Parse config account data to get real start_time
-        // Config structure: discriminator(8) + admin(32) + milk_mint(32) + pool_token_account(32) + start_time(8) + global_cows_count(8) + initial_tvl(8)
+        // Parse config account data to get real start_time  
+        // Config structure: discriminator(8) + admin(32) + milk_mint(32) + cow_mint(32) + pool_token_account(32) + start_time(8) + global_cows_count(8) + initial_tvl(8)
         const dataView = new DataView(configAccountInfo.data.buffer);
-        realStartTime = Number(dataView.getBigUint64(8 + 32 + 32 + 32, true)); // start_time at offset 104
+        realStartTime = Number(dataView.getBigUint64(8 + 32 + 32 + 32 + 32, true)); // start_time at offset 136
         console.log('Real start time from blockchain:', realStartTime, new Date(realStartTime * 1000).toISOString());
       } else {
         console.warn('Config account not found, using fallback start time');
@@ -141,11 +140,13 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
       const realConfig = {
         admin: networkConfig.programId,
         milkMint: networkConfig.milkMint,
-        baseMilkPerCowPerMin: { toNumber: () => GAME_CONFIG.REWARD_BASE },
-        cowInitialCost: { toNumber: () => GAME_CONFIG.COW_BASE_PRICE },
+        cowMint: networkConfig.cowMint,
+        poolTokenAccount: networkConfig.poolTokenAccount,
         startTime: { toNumber: () => realStartTime },
         globalCows: stats.globalCows,
         tvl: stats.tvl,
+        globalCowsCount: { toNumber: () => stats.globalCows },
+        initialTvl: { toNumber: () => GAME_CONFIG.INITIAL_TVL },
       };
       
       setConfigData(realConfig);
@@ -159,12 +160,15 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
 
   const fetchFarmData = useCallback(async (walletPubkey: PublicKey) => {
     try {
-      const { farmPda } = findProgramAddresses(networkConfig.programId, walletPubkey);
+      const [farmPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from('farm'), walletPubkey.toBuffer()],
+        networkConfig.programId
+      );
       
       console.log('Fetching farm data for:', walletPubkey.toString());
-      console.log('Farm PDA:', farmPda!.toString());
+      console.log('Farm PDA:', farmPda.toString());
       
-      const farmAccount = await connection.getAccountInfo(farmPda!, 'confirmed');
+      const farmAccount = await connection.getAccountInfo(farmPda, 'confirmed');
       if (!farmAccount || farmAccount.data.length === 0) {
         console.log('Farm account not found or empty');
         return null;
@@ -209,18 +213,36 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
     }
   }, [connection, networkConfig.programId]);
 
-  const fetchUserTokenBalance = useCallback(async (walletPubkey: PublicKey) => {
+  const fetchUserTokenBalances = useCallback(async (walletPubkey: PublicKey) => {
     try {
-      const associatedTokenAccount = await getAssociatedTokenAddress(networkConfig.milkMint, walletPubkey);
-      const tokenAccount = await getAccount(connection, associatedTokenAccount);
-      const balance = Number(tokenAccount.amount) / Math.pow(10, 6);
-      console.log('User MILK balance:', balance);
-      return balance;
+      // Get MILK balance
+      let milkBalance = 0;
+      try {
+        const milkTokenAccount = await getAssociatedTokenAddress(networkConfig.milkMint, walletPubkey);
+        const milkAccount = await getAccount(connection, milkTokenAccount);
+        milkBalance = Number(milkAccount.amount) / Math.pow(10, 6);
+        console.log('User MILK balance:', milkBalance);
+      } catch (err) {
+        console.log('MILK token account not found or empty');
+      }
+      
+      // Get COW balance
+      let cowBalance = 0;
+      try {
+        const cowTokenAccount = await getAssociatedTokenAddress(networkConfig.cowMint, walletPubkey);
+        const cowAccount = await getAccount(connection, cowTokenAccount);
+        cowBalance = Number(cowAccount.amount) / Math.pow(10, 6);
+        console.log('User COW balance:', cowBalance);
+      } catch (err) {
+        console.log('COW token account not found or empty');
+      }
+      
+      return { milkBalance, cowBalance };
     } catch (err) {
-      console.error('Error fetching token balance:', err);
-      return 0;
+      console.error('Error fetching token balances:', err);
+      return { milkBalance: 0, cowBalance: 0 };
     }
-  }, [connection, networkConfig.milkMint]);
+  }, [connection, networkConfig.milkMint, networkConfig.cowMint]);
 
   const fetchAllData = useCallback(async () => {
     setLoading(true);
@@ -234,9 +256,9 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
       if (walletAddress && config) {
         const walletPubkey = new PublicKey(walletAddress);
         
-        const [farm, milkBalance] = await Promise.all([
+        const [farm, tokenBalances] = await Promise.all([
           fetchFarmData(walletPubkey),
-          fetchUserTokenBalance(walletPubkey),
+          fetchUserTokenBalances(walletPubkey),
         ]);
         
         // Calculate pending rewards using stored rate and current time
@@ -259,7 +281,8 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
           walletAddress,
           cows: farm ? farm.cows.toNumber() : 0,
           accumulatedRewards: farm ? farm.accumulatedRewards.toNumber() / Math.pow(10, 6) : 0,
-          milkBalance,
+          milkBalance: tokenBalances.milkBalance,
+          cowBalance: tokenBalances.cowBalance,
           estimatedPendingRewards: pendingRewards,
           totalRewards: farm ? 
             (farm.accumulatedRewards.toNumber() / Math.pow(10, 6)) + pendingRewards : 0,
@@ -277,7 +300,7 @@ export const useGameData = (walletAddress?: string, autoRefresh: boolean = false
     } finally {
       setLoading(false);
     }
-  }, [walletAddress, fetchConfigData, fetchFarmData, fetchUserTokenBalance]);
+  }, [walletAddress, fetchConfigData, fetchFarmData, fetchUserTokenBalances]);
 
   // Initial data load
   useEffect(() => {

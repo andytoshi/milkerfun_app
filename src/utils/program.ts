@@ -1,5 +1,5 @@
 import { Connection, PublicKey, SystemProgram } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getAccount } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, createAssociatedTokenAccountInstruction, getAccount} from '@solana/spl-token';
 import { BN } from '@coral-xyz/anchor';
 import { GAME_CONFIG } from '../constants/solana';
 import type { ConfigAccount, FarmAccount, GameCalculations } from '../types/program';
@@ -62,6 +62,8 @@ const getMethodDiscriminator = (methodName: string): Buffer => {
 export const BUY_COWS_DISCRIMINATOR = getMethodDiscriminator('buy_cows');
 export const WITHDRAW_MILK_DISCRIMINATOR = getMethodDiscriminator('withdraw_milk');
 export const COMPOUND_COWS_DISCRIMINATOR = getMethodDiscriminator('compound_cows');
+export const EXPORT_COWS_DISCRIMINATOR = getMethodDiscriminator('export_cows');
+export const IMPORT_COWS_DISCRIMINATOR = getMethodDiscriminator('import_cows');
 
 
 // Program instruction discriminators (first 8 bytes of instruction data)
@@ -82,6 +84,11 @@ export const findProgramAddresses = (programId: PublicKey, userPubkey?: PublicKe
     programId
   );
 
+  const [cowMintAuthorityPda] = PublicKey.findProgramAddressSync(
+    [Buffer.from('cow_mint_authority'), configPda.toBuffer()],
+    programId
+  );
+
   let farmPda: PublicKey | undefined;
   if (userPubkey) {
     [farmPda] = PublicKey.findProgramAddressSync(
@@ -90,7 +97,7 @@ export const findProgramAddresses = (programId: PublicKey, userPubkey?: PublicKe
     );
   }
 
-  return { configPda, poolAuthorityPda, farmPda };
+  return { configPda, poolAuthorityPda, cowMintAuthorityPda, farmPda };
 };
 
 export const deserializeConfig = (data: Buffer): ConfigAccount => {
@@ -103,20 +110,28 @@ export const deserializeConfig = (data: Buffer): ConfigAccount => {
   const milkMint = new PublicKey(data.slice(offset, offset + 32));
   offset += 32;
   
-  const baseMilkPerCowPerMin = new BN(data.slice(offset, offset + 8), 'le');
-  offset += 8;
+  const cowMint = new PublicKey(data.slice(offset, offset + 32));
+  offset += 32;
   
-  const cowInitialCost = new BN(data.slice(offset, offset + 8), 'le');
-  offset += 8;
+  const poolTokenAccount = new PublicKey(data.slice(offset, offset + 32));
+  offset += 32;
   
   const startTime = new BN(data.slice(offset, offset + 8), 'le');
+  offset += 8;
+  
+  const globalCowsCount = new BN(data.slice(offset, offset + 8), 'le');
+  offset += 8;
+  
+  const initialTvl = new BN(data.slice(offset, offset + 8), 'le');
   
   return {
     admin,
     milkMint,
-    baseMilkPerCowPerMin,
-    cowInitialCost,
+    cowMint,
+    poolTokenAccount,
     startTime,
+    globalCowsCount,
+    initialTvl,
   };
 };
 
@@ -135,12 +150,20 @@ export const deserializeFarm = (data: Buffer): FarmAccount => {
   offset += 8;
   
   const accumulatedRewards = new BN(data.slice(offset, offset + 8), 'le');
+  offset += 8;
+  
+  const lastRewardRate = new BN(data.slice(offset, offset + 8), 'le');
+  offset += 8;
+  
+  const lastWithdrawTime = new BN(data.slice(offset, offset + 8), 'le');
   
   return {
     owner,
     cows,
     lastUpdateTime,
     accumulatedRewards,
+    lastRewardRate,
+    lastWithdrawTime,
   };
 };
 
@@ -154,7 +177,7 @@ export const calculateGameStats = (config: ConfigAccount): GameCalculations => {
   const currentCowPrice = GAME_CONFIG.COW_BASE_PRICE; // Default, will be updated with real data
   const currentRewardRate = GAME_CONFIG.REWARD_BASE; // Default, will be updated with real data
   const priceMultiplier = 1.0; // Will be calculated based on global cows
-  const greedMultiplier = 6.0; // Default maximum greed multiplier, will be updated with real data
+  const greedMultiplier = 9.0; // Default maximum greed multiplier, will be updated with real data
 
   return {
     currentCowPrice,
@@ -170,15 +193,18 @@ export const calculateGameStats = (config: ConfigAccount): GameCalculations => {
   };
 };
 
-export const calculatePendingRewards = (farm: FarmAccount, config: ConfigAccount): number => {
+export const calculatePendingRewards = (farm: FarmAccount): number => {
   if (farm.cows.isZero()) return 0;
   
   const currentTime = Math.floor(Date.now() / 1000);
   const timeSinceUpdate = currentTime - farm.lastUpdateTime.toNumber();
-  const gameStats = calculateGameStats(config);
+  
+  // Use stored reward rate if available, otherwise calculate current rate
+  const storedRate = farm.lastRewardRate ? farm.lastRewardRate.toNumber() : 0;
+  const rewardRate = storedRate > 0 ? storedRate : GAME_CONFIG.REWARD_BASE * 1_000_000; // Convert to raw tokens
   
   // Calculate rewards: cows * rate * time_in_minutes
-  const rewardsPerSecond = (farm.cows.toNumber() * gameStats.currentRewardRate) / 60;
+  const rewardsPerSecond = (farm.cows.toNumber() * rewardRate) / (86400 * 1_000_000); // per day to per second, accounting for decimals
   return rewardsPerSecond * timeSinceUpdate;
 };
 
@@ -287,6 +313,72 @@ export const createCompoundCowsInstruction = async (
     { pubkey: farmPda!, isSigner: false, isWritable: true },
     { pubkey: poolTokenAccount, isSigner: false, isWritable: false },
     { pubkey: userPubkey, isSigner: true, isWritable: false },
+  ];
+
+  return {
+    keys,
+    programId,
+    data,
+  };
+};
+
+export const createExportCowsInstruction = async (
+  programId: PublicKey,
+  userPubkey: PublicKey,
+  cowMint: PublicKey,
+  userCowTokenAccount: PublicKey,
+  poolTokenAccount: PublicKey,
+  numCows: number
+): Promise<{ keys: any[], programId: PublicKey, data: Buffer }> => {
+  const { configPda, cowMintAuthorityPda, farmPda } = findProgramAddresses(programId, userPubkey);
+  
+  // Create instruction data: 8-byte discriminator + 8-byte num_cows
+  const data = Buffer.alloc(16);
+  EXPORT_COWS_DISCRIMINATOR.copy(data, 0);
+  new BN(numCows).toArrayLike(Buffer, 'le', 8).copy(data, 8);
+
+  const keys = [
+    { pubkey: configPda, isSigner: false, isWritable: false },
+    { pubkey: farmPda!, isSigner: false, isWritable: true },
+    { pubkey: cowMint, isSigner: false, isWritable: true },
+    { pubkey: cowMintAuthorityPda, isSigner: false, isWritable: false },
+    { pubkey: userCowTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: poolTokenAccount, isSigner: false, isWritable: false },
+    { pubkey: userPubkey, isSigner: true, isWritable: false },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+  ];
+
+  return {
+    keys,
+    programId,
+    data,
+  };
+};
+
+export const createImportCowsInstruction = async (
+  programId: PublicKey,
+  userPubkey: PublicKey,
+  cowMint: PublicKey,
+  userCowTokenAccount: PublicKey,
+  poolTokenAccount: PublicKey,
+  numCows: number
+): Promise<{ keys: any[], programId: PublicKey, data: Buffer }> => {
+  const { configPda, farmPda } = findProgramAddresses(programId, userPubkey);
+  
+  // Create instruction data: 8-byte discriminator + 8-byte num_cows
+  const data = Buffer.alloc(16);
+  IMPORT_COWS_DISCRIMINATOR.copy(data, 0);
+  new BN(numCows).toArrayLike(Buffer, 'le', 8).copy(data, 8);
+
+  const keys = [
+    { pubkey: configPda, isSigner: false, isWritable: true },
+    { pubkey: farmPda!, isSigner: false, isWritable: true },
+    { pubkey: cowMint, isSigner: false, isWritable: true },
+    { pubkey: userCowTokenAccount, isSigner: false, isWritable: true },
+    { pubkey: poolTokenAccount, isSigner: false, isWritable: false },
+    { pubkey: userPubkey, isSigner: true, isWritable: false },
+    { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
   ];
 
   return {

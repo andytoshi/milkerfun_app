@@ -680,7 +680,7 @@ export const GameStats: React.FC<GameStatsProps> = ({
           🧮 Core Mathematical Models
         </h3>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white/5 rounded-xl p-6 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300">
             <h4 className="text-lg font-bold text-purple-400 mb-4 text-center">Dynamic Pricing</h4>
             <div className="bg-black/30 rounded-lg p-4 mb-4">
@@ -723,6 +723,21 @@ export const GameStats: React.FC<GameStatsProps> = ({
               <div><strong className="text-white">C₀:</strong> Decay pivot (1,500)</div>
               <div><strong className="text-white">Range:</strong> 9x → 1x</div>
               <div><strong className="text-white">Current:</strong> {gameStats?.greedMultiplier?.toFixed(2) || '9.00'}x</div>
+            </div>
+          </div>
+
+          <div className="bg-white/5 rounded-xl p-6 border border-orange-500/30 hover:border-orange-400/50 transition-all duration-300">
+            <h4 className="text-lg font-bold text-orange-400 mb-4 text-center">Export/Import</h4>
+            <div className="bg-black/30 rounded-lg p-4 mb-4">
+              <div className="text-center font-mono text-white text-lg font-bold">
+                1 Cow ⟷ 1 COW
+              </div>
+            </div>
+            <div className="space-y-2 text-sm text-white/70">
+              <div><strong className="text-white">Rate:</strong> 1:1 conversion</div>
+              <div><strong className="text-white">Decimals:</strong> 6 (both tokens)</div>
+              <div><strong className="text-white">Type:</strong> Bidirectional</div>
+              <div><strong className="text-white">Fee:</strong> None</div>
             </div>
           </div>
         </div>
