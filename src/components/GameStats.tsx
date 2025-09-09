@@ -41,12 +41,11 @@ export const GameStats: React.FC<GameStatsProps> = ({
     if (!globalStats) return { tvlInMilk: 0, tvlPerCow: 0 };
     
     const tvlInMilk = globalStats.tvl / 1_000_000;
-    const tvlPerCow = globalStats.globalCows > 0 ? tvlInMilk / globalStats.globalCows : 0;
+    const tvlPerCow = gameStats?.currentRewardRate ?? GAME_CONFIG.REWARD_BASE;
     
     return { tvlInMilk, tvlPerCow };
   };
 
-  const { tvlInMilk, tvlPerCow } = getTVLMetrics();
 
   if (loading) {
     return (
@@ -128,6 +127,8 @@ export const GameStats: React.FC<GameStatsProps> = ({
     };
   });
 
+  const { tvlInMilk, tvlPerCow: rewardPerCowPerDay } = getTVLMetrics();
+
   return (
     <div className="space-y-6 md:space-y-8">
       {/* Header Card */}
@@ -193,8 +194,8 @@ export const GameStats: React.FC<GameStatsProps> = ({
               <span className="text-xl font-bold text-blue-400">{formatNumber(tvlInMilk)} MILK</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-white/60 text-sm font-medium">TVL per Cow</span>
-              <span className="text-lg font-semibold text-white">{formatNumber(tvlPerCow)} MILK</span>
+              <span className="text-white/60 text-sm font-medium">Daily reward per Cow</span>
+              <span className="text-lg font-semibold text-green-400">{formatNumber(rewardPerCowPerDay)} MILK</span>
             </div>
           </div>
         </div>
